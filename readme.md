@@ -27,7 +27,8 @@ Requerimentos
 - PHP 5.3.x com módulos: Mcrypt, Filter, SQLite3
 - SQLite3
 - Conexão a internet (para gerar os gráficos)
-- Navegador compatível com HTML5
+- Navegador compatível com HTML5, principalmente Session Storage 
+  (somente Google Chrome até o momento)
 
 Instalação
 ----------
@@ -40,4 +41,9 @@ de segurança, para isso, foi criado um arquivo .htaccess dentro do mesmo.
 Será necessário fazer essa navegação via outros meios caso você não use o
 Servidor Apache ou não possua o módulo Rewrite habilitado.
 
-
+Iniciando
+---------
+O usuário e senha padrões para o projeto é 'admin'. É recomendado que 
+após o primeiro login, vá na tela de preferências e troque a senha do
+mesmo.
+Após isso, é possível ir adicionando usuários à aplicação.
