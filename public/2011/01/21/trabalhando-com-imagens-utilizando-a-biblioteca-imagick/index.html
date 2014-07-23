@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- start: Meta -->
+    <meta charset="utf-8">
+    <title>Trabalhando com imagens utilizando a biblioteca Imagick</title>
+    <meta name="description" content="Magnus Bootstrap Theme" />
+    <meta name="keywords" content="Template, Theme, web, html5, css3, Bootstrap" />
+    <meta name="author" content="Łukasz Holeczek from creativeLabs" />
+    <!-- end: Meta -->
+    
+    <!-- start: Mobile Specific -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <!-- end: Mobile Specific -->
+    
+    <!-- start: CSS -->
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/parallax-slider.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans:400,700">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Serif">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Boogaloo">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Economica:700,400italic">
+    <!-- end: CSS -->
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <link href="/css/ie.css" rel="stylesheet">
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!--[if IE 9]>
+        <link href="/css/ie9.css" rel="stylesheet">
+    <![endif]-->
+</head>
+<body>
+    <!--start: Header -->
+    <header>
+        <!--start: Container -->
+        <div class="container">
+            <!--start: Navigation -->
+            <div class="navbar navbar-inverse">
+                <div class="navbar-inner">
+                    <a class="btn btn-navbar" data-toggle="collapse"
+                        data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+                        class="icon-bar"></span> <span class="icon-bar"></span>
+                    </a> 
+                    <a class="brand" href="/"><i class="ico-thin-right-arrow ico-color circle"></i> mr<span>prompt</span></a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            <li><a href="/">Início</a></li>
+                            <li><a href="/servicos">Serviços</a></li>
+                            <li class="active"><a href="/blog">Blog</a></li>
+                            <li><a href="/contato">Contato</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!--end: Navigation -->
+
+        </div>
+        <!--end: Container-->
+
+    </header>
+    <!--end: Header-->
+
+	<!-- start: Page Title -->
+	<div id="page-title">
+	    <div id="page-title-inner">
+	        <!-- start: Container -->
+	        <div class="container">
+	            <h2>
+	                <i class="ico-pencil"></i>Trabalhando com imagens utilizando a biblioteca Imagick
+	            </h2>
+	        </div>
+	        <!-- end: Container  -->
+	    </div>
+	</div>
+	<!-- end: Page Title -->
+	
+	<!--start: Wrapper-->
+	<div id="wrapper">
+	    <!--start: Container -->
+	    <div class="container">
+	        <!--start: Row -->
+	        <div class="row">
+	            <div class="span9">
+	                <p>Qual programador nunca teve sua função &#39;criaThumb&#39;, &#39;thumb&#39; ou parecida, utilizando aqueles terríveis - e chatos - cálculos e &#39;ifs&#39; com GD não é mesmo? Pessoalmente, nunca gostei, utilizada por não conhecer outra alternativa, mas agora com a biblioteca Imagick isso ficou até massa de fazer.</p>
+
+<p>Com ela, você pode não apenas criar miniaturas de imagens, mas também recuperar várias informações, recortar, redimensionar, inserir uma marca d&#39;água, mesclar imagens, enfim, o limite é a sua imaginação.</p>
+
+<p>A instalação é simples, no Ubuntu, basta dar um: &#39;sudo apt-get install php5-imagick&#39; e pronto, o módulo esta lá, disponível pra uso. E você pode fazer horrores com esta biblioteca, abaixo vou citar um pequeno exemplo de uso:</p>
+
+<div class="highlight"><pre><code class="language-php5" data-lang="php5"><span class="lineno"> 1</span> <span class="cp">&lt;?php</span>
+<span class="lineno"> 2</span> <span class="c1">// instancio a biblioteca informando a imagem como fonte</span>
+<span class="lineno"> 3</span> <span class="nv">$objImagem</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Imagick</span><span class="p">(</span><span class="s1">&#39;/tmp/minhafotogigante.jpg&#39;</span><span class="p">);</span>
+<span class="lineno"> 4</span> 
+<span class="lineno"> 5</span> <span class="c1">// seto a compressão como jpeg</span>
+<span class="lineno"> 6</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">setImageCompression</span><span class="p">(</span><span class="nx">Imagick</span><span class="o">::</span><span class="na">COMPRESSION_JPEG</span><span class="p">);</span>
+<span class="lineno"> 7</span> 
+<span class="lineno"> 8</span> <span class="c1">// defino o nível de qualidade de compressão</span>
+<span class="lineno"> 9</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">setCompressionQuality</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<span class="lineno">10</span> 
+<span class="lineno">11</span> <span class="c1">// faço o thumbnail normal</span>
+<span class="lineno">12</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">thumbnailImage</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">80</span><span class="p">);</span>
+<span class="lineno">13</span> 
+<span class="lineno">14</span> <span class="c1">// ou faço um thumbnail recortando</span>
+<span class="lineno">15</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">cropThumbnailImage</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">90</span><span class="p">);</span>
+<span class="lineno">16</span> 
+<span class="lineno">17</span> <span class="c1">// ou recorto um pedaço da imagem</span>
+<span class="lineno">18</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">cropImage</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="lineno">19</span> 
+<span class="lineno">20</span> <span class="c1">// salvo a imagem em disco</span>
+<span class="lineno">21</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">writeImage</span><span class="p">(</span><span class="s1">&#39;/tmp/minhafotopequena.jpg&#39;</span><span class="p">);</span>
+<span class="lineno">22</span> 
+<span class="lineno">23</span> <span class="c1">// recupero o mime-type (tipo) da imagem</span>
+<span class="lineno">24</span> <span class="nv">$strImagemFormato</span> <span class="o">=</span> <span class="nv">$objImagem</span><span class="o">-&gt;</span><span class="na">getImageFormat</span><span class="p">();</span>
+<span class="lineno">25</span> 
+<span class="lineno">26</span> <span class="c1">// seto corretamente o content-type no header e imprimo</span>
+<span class="lineno">27</span> <span class="nb">header</span><span class="p">(</span><span class="s2">&quot;Content-Type: image/</span><span class="si">{</span><span class="nv">$strImagemFormato</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">);</span>
+<span class="lineno">28</span> <span class="k">echo</span> <span class="nv">$strImagem</span><span class="p">;</span></code></pre></div>
+
+<p>Viu, simples não? No manual existem várias outras opções de uso, e com certeza irão atender plenamente suas necessidades.</p>
+
+	            </div>
+	
+	            <!-- start: Sidebar -->
+	            <div class="span3 hidden-phone">
+	
+	                <!-- start: Text Widget -->
+	                <div class="widget first">
+	                    <div class="title">
+	                        <h3>Outros posts</h3>
+	                    </div>
+	                    <ul class="posts">
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>03 Sep 2013</span> <br>
+	                          <a class="post-link" href="/2013/09/03/resolvendo-o-problema-com-upload-de-arquivos-grandes-com-php-fpm-nginx/">Resolvendo o problema com upload de arquivos grandes no Nginx</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>16 Aug 2013</span> <br>
+	                          <a class="post-link" href="/2013/08/16/melhorando-a-completacao-de-codigo-auto-complete-do-netbeans/">Melhorando a completação de código (auto-complete) do NetBeans</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>18 Apr 2013</span> <br>
+	                          <a class="post-link" href="/2013/04/18/alterando-a-pasta-padrao-de-projetos-do-netbeans/">Alterando a pasta padrão de projetos do NetBeans</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>24 Mar 2013</span> <br>
+	                          <a class="post-link" href="/2013/03/24/php-gtk-no-lion/">PHP-GTK no Lion</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>08 Apr 2012</span> <br>
+	                          <a class="post-link" href="/2012/04/08/brincando-com-yql-yahoo-query-language/">Brincando com YQL - Yahoo Query Language</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>08 Apr 2012</span> <br>
+	                          <a class="post-link" href="/2012/04/08/daemons-em-php/">Daemons em PHP</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>08 Apr 2012</span> <br>
+	                          <a class="post-link" href="/2012/04/08/utilizando-php-na-linha-de-comando-com-zend-framework/">Utilizando PHP na linha de comando com Zend Framework</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>21 Jan 2011</span> <br>
+	                          <a class="post-link" href="/2011/01/21/trabalhando-com-imagens-utilizando-a-biblioteca-imagick/">Trabalhando com imagens utilizando a biblioteca Imagick</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>26 Sep 2009</span> <br>
+	                          <a class="post-link" href="/2009/09/26/nginx/">Nginx</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>22 Apr 2008</span> <br>
+	                          <a class="post-link" href="/2008/04/22/backup-incremental-simples-e-indolor/">Backup incremental simples e indolor</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>05 Oct 2007</span> <br>
+	                          <a class="post-link" href="/2007/10/05/internacionalizando-aplicacoes-baseadas-no-cakephp-1-2/">Internacionalizando Aplicações baseadas no CakePHP 1.2</a>
+	                        </li>
+	                      
+	                        <li>
+	                          <span><i class="mini-ico-calendar"></i>22 Sep 2007</span> <br>
+	                          <a class="post-link" href="/2007/09/22/criando-um-access-point/">Criando um Access Point</a>
+	                        </li>
+	                      
+	                    </ul>
+	                </div>
+	                <!-- end: Text Widget -->
+	            </div>
+	            <!-- end: Sidebar -->
+	        </div>
+	        <!--end: Row -->
+	    </div>
+	    <!--end: Container-->
+	</div>
+	<!-- end: Wrapper  -->
+
+    <!-- start: Footer Menu -->
+    <div id="footer-menu" class="hidden-tablet hidden-phone">
+        <!-- start: Container -->
+        <div class="container">
+            <!-- start: Row -->
+            <div class="row">
+                <!-- start: Footer Menu Logo -->
+                <div class="span2">
+                    <div id="footer-menu-logo">
+                        <a class="brand" href="/">mrprompt</a>
+                    </div>
+                </div>
+                <!-- end: Footer Menu Logo -->
+
+                <!-- start: Footer Menu Links-->
+                <div class="span9">
+                    <div id="footer-menu-links">
+                        <ul id="footer-nav">
+                            <li><a href="/">Início</a></li>
+                            <li><a href="/sobre">Sobre</a></li>
+                            <li><a href="/servicos">Serviços</a></li>
+                            <li><a href="/blog">Blog</a></li>
+                            <li><a href="/contato">Contato</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- end: Footer Menu Links-->
+
+                <!-- start: Footer Menu Back To Top -->
+                <div class="span1">
+                    <div id="footer-menu-back-to-top">
+                        <a href="#"></a>
+                    </div>
+                </div>
+                <!-- end: Footer Menu Back To Top -->
+            </div>
+            <!-- end: Row -->
+        </div>
+        <!-- end: Container  -->
+    </div>
+    <!-- end: Footer Menu -->
+
+    <!-- start: Copyright -->
+    <div id="copyright">
+        <!-- start: Container -->
+        <div class="container">
+            <div class="sixteen columns">
+                <p>
+                    &copy; 2014 - <a href="http://mrprompt.com.br">mrprompt.com.br</a>
+                </p>
+            </div>
+        </div>
+        <!-- end: Container  -->
+    </div>
+    <!-- end: Copyright -->
+
+    <!-- start: Java Script -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/js/jquery-1.8.2.js"></script>
+    <script src="/js/isotope.js"></script>
+    <script src="/js/jquery.imagesloaded.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/flexslider.js"></script>
+    <script src="/js/carousel.js"></script>
+    <script src="/js/jquery.cslider.js"></script>
+    <script src="/js/slider.js"></script>
+    <script src="/js/fancybox.js"></script>
+    <script src="/js/twitter.js"></script>
+    <script defer="defer" src="/js/custom.js"></script>
+    <!-- start analytics -->
+    <script>
+        (function(i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function() {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script',
+                '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-1337986-1', 'mrprompt.com.br');
+        ga('send', 'pageview');
+    </script>
+    <!-- end analytics -->
+    <!-- end: Java Script -->
+</body>
+</html>
+<!-- Localized -->
+
