@@ -58,7 +58,7 @@ class Usuarios extends \AbstractDb
     private $_nome        = null;
     private $_email       = null;
     private $_dias_trabalho = null;
-    private $_key         = '4ArqdTSjdcuzhsT1zr';
+    private $_key         = '4ArqdTSjdcuzhsT1';
     private $_cipher      = MCRYPT_RIJNDAEL_256;
     private $_mode        = MCRYPT_MODE_CFB;
 
