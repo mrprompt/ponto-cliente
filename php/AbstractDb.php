@@ -96,7 +96,7 @@ class AbstractDb extends \PDO
             throw new \AbstractDbException($msg);
         }
 
-        $this->_dbFile = __DIR__ . '/.ponto.db';
+        $this->_dbFile = __DIR__ . '/../data/ponto.db';
 
         if (!is_writable($this->_dbFile)) {
             $msg = 'Banco sem permissão de escrita.';
