@@ -21,7 +21,7 @@
 /**
  * @see Ponto
  */
-require_once __DIR__ . '/../php/Ponto.php';
+require_once __DIR__ . '/../../php/Ponto.php';
 
 $retorno = null;
 

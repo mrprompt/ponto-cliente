@@ -21,7 +21,7 @@
 /**
  * @see Usuarios
  */
-require_once __DIR__ . '/../php/Usuarios.php';
+require_once __DIR__ . '/../../php/Usuarios.php';
 
 $retorno = null;
 
