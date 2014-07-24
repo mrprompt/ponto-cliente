@@ -189,8 +189,8 @@ class Ponto extends \Usuarios
         $sql = "SELECT id "
              . "FROM ponto "
              . "WHERE entrada "
-             . "BETWEEN STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', '-3 HOURS')) "
-             . "AND DATETIME('NOW', '-3 HOURS') "
+             . "BETWEEN STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', 'LOCALTIME')) "
+             . "AND DATETIME('NOW', 'LOCALTIME') "
              . "AND saida IS NULL "
              . "AND usuario_id = :usuario_id "
              . "ORDER BY entrada DESC "
@@ -206,7 +206,7 @@ class Ponto extends \Usuarios
 
             if (empty($retorno['id'])) {
                 $sql = "INSERT INTO ponto(id, entrada, saida, obs, usuario_id) "
-                     . "VALUES(NULL, DATETIME('NOW', '-3 HOURS'), NULL, "
+                     . "VALUES(NULL, DATETIME('NOW', 'LOCALTIME'), NULL, "
                      . ":obs, :usuario_id)";
 
                 $stmt = $this->getInstance()->prepare($sql);
@@ -235,14 +235,14 @@ class Ponto extends \Usuarios
     public function saida()
     {
         $sql = "UPDATE ponto "
-             . "SET saida = DATETIME('NOW', '-3 HOURS'), obs = :obs "
+             . "SET saida = DATETIME('NOW', 'LOCALTIME'), obs = :obs "
              . "WHERE entrada BETWEEN "
-             . "STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', '-3 HOURS')) "
-             . "AND DATETIME('NOW', '-3 HOURS') "
+             . "STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', 'LOCALTIME')) "
+             . "AND DATETIME('NOW', 'LOCALTIME') "
              . "AND usuario_id = :usuario_id "
              . "AND id = (SELECT id FROM ponto WHERE entrada BETWEEN "
-             . "STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', '-3 HOURS')) "
-             . "AND DATETIME('NOW', '-3 HOURS') "
+             . "STRFTIME('%Y-%m-%d 00:00:00', DATE('NOW', 'LOCALTIME')) "
+             . "AND DATETIME('NOW', 'LOCALTIME') "
              . "AND saida IS NULL "
              . "AND usuario_id = :usuario_id "
              . "ORDER BY entrada DESC LIMIT 1)";
