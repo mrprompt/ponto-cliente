@@ -335,7 +335,7 @@ Ponto = {
                             .html(this.saida))
                         .append($('<td/>')
                             .addClass('horas')
-                            .html(this.horas))
+                            .html(this.horas));
 
                         var $obs = this.obs;
 
@@ -348,7 +348,6 @@ Ponto = {
 
                     // verificando se cumpriu o expediente
                     var horas_dia               = parseInt(sessionStorage.getItem('horas_dia'), 10);
-                    var horas_almoco            = parseInt(sessionStorage.getItem('horas_almoco'), 10);
                     var intExpediente           = horas_dia * 60;
                     var intExpedienteCheio      = 0;
                     var intExpedienteIncompleto = 0;
@@ -361,8 +360,8 @@ Ponto = {
                         var strData     = $linha.find('td:eq(0)').html();
                         var strHoras    = $linha.find('td:eq(3)').html();
                         var intDia      = parseInt(strData.substr(0, 2), 10);
-                        var intHora     = parseInt(strHoras.substr(0, 2), 10)
-                        var intMinuto   = parseInt(strHoras.substr(3, 2), 10)
+                        var intHora     = parseInt(strHoras.substr(0, 2), 10);
+                        var intMinuto   = parseInt(strHoras.substr(3, 2), 10);
 
                         // crio uma classe para todas as linhas de mesmo dia
                         $linha.addClass('dia' + intDia);
@@ -433,7 +432,6 @@ Ponto = {
 
                     // contando os dias da semana que o usuário trabalha
                     for (i = 1; i <= intDiasMes; i++) {
-                        var intDia = objData.getDate();
                         var bUtil = $.inArray(objData.getDay().toString(), arrDiasTrabalho);
 
                         if (bUtil >= 0) {
@@ -766,7 +764,7 @@ Ponto = {
         // retomar sessão original
         if (sessionStorage.getItem('inicial') !== null) {
             var original = JSON.parse(sessionStorage.getItem('inicial'));
-            mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?'
+            mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
             .attr('id', 'troca-form')
@@ -800,7 +798,7 @@ Ponto = {
                 }
             });
         } else {
-            mensagem = 'Efetuar logout?'
+            mensagem = 'Efetuar logout?';
 
             $('<div/>')
             .attr('id', 'troca-form')
@@ -1263,4 +1261,4 @@ Ponto = {
             dataType: 'json'
         });
     }
-}
+};
