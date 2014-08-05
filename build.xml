@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Ponto" default="build" basedir=".">
+    <property name="zend.bin" value="/usr/local/zend/bin" />
+    <property name="application.target" value="${project.basedir}/build/data" />
+    <property name="application.packagedir" value="${project.basedir}/build" />
+
+    <target name="build" depends="clean,prepare, package"/>
+
+    <target name="clean" description="Limpa os diretórios de artefatos">
+        <delete dir="${application.target}"/>
+        <mkdir dir="${application.target}"/>
+        <mkdir dir="${application.target}/data"/>
+        <mkdir dir="${application.target}/php"/>
+        <mkdir dir="${application.target}/public"/>
+        <echo msg="Files cleaned" />
+    </target>
+
+    <target name="prepare" description="Cria os diretórios de artefatos">
+        <echo>Copying to build directory...</echo>
+        
+        <copy todir="${application.target}/public">
+	        <fileset dir="${project.basedir}/public">
+	            <include name="**/*" />
+	        </fileset>
+	   </copy>
+	   <copy todir="${application.target}/data">
+	        <fileset dir="${project.basedir}/data">
+	            <include name="**/*" />
+	        </fileset>
+	   </copy>
+	   <copy todir="${application.target}/php">
+	        <fileset dir="${project.basedir}/php">
+	            <include name="**/*" />
+	        </fileset>
+        </copy>
+        <copy file="${project.basedir}/LICENSE.txt" todir="${application.target}"/>
+    </target>
+
+    <target name="package" description="Cria o Zend Package">
+        <echo msg="Generating Zend Package" />
+        <exec command="chdir ${application.packagedir}"/>
+        <exec command="${zend.bin}/zdpack --output-dir=${application.packagedir} pack ." />
+    </target>
+</project>
