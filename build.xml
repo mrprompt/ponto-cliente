@@ -34,7 +34,6 @@
 	            <include name="**/*" />
 	        </fileset>
         </copy>
-        <copy file="${project.basedir}/LICENSE.txt" todir="${application.target}"/>
     </target>
 
     <target name="package" description="Cria o Zend Package">
