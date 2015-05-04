@@ -11,7 +11,7 @@
  * @subpackage Ponto
  * @filesource Ponto.js
  * @copyright  Copyright 2011, Thiago Paes
- * @link       http://github.com/mrprompt/Ponto/
+ * @link       http://github.com/mrprompt/ponto/
  * @version    $Revision: 0.1 $
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
@@ -288,7 +288,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'loadlib/relatorio.php',
+            url: 'https://ponto-thiagopaes.rhcloud.com/app/relatorio.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 data: strData
@@ -483,7 +483,7 @@ Ponto = {
     _removerUsuario: function(lista) {
         $.ajax({
             type: 'POST',
-            url: 'loadlib/userdel.php',
+            url: 'https://ponto-thiagopaes.rhcloud.com/app/userdel.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 usuarios: lista.join(',')
@@ -668,7 +668,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'loadlib/cadastro.php',
+                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -723,7 +723,7 @@ Ponto = {
                     if (bValid === true) {
                         $.ajax({
                             type: 'POST',
-                            url: 'loadlib/login.php',
+                            url: 'https://ponto-thiagopaes.rhcloud.com/app/login.php',
                             data: $("#login-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -849,7 +849,7 @@ Ponto = {
                     "Registrar": function() {
                         $.ajax({
                             type: 'POST',
-                            url: 'loadlib/ponto.php',
+                            url: 'https://ponto-thiagopaes.rhcloud.com/app/ponto.php',
                             data: {
                                 observacao: $("#ponto-form #observacao").val(),
                                 usuario: sessionStorage.getItem('id'),
@@ -950,7 +950,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'loadlib/cadastro.php',
+                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
                             data: $('#cadastro-form form').serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1011,7 +1011,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'loadlib/cadastro.php',
+                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1099,7 +1099,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'loadlib/usuarios.php',
+            url: 'https://ponto-thiagopaes.rhcloud.com/app/usuarios.php',
             data: {
                 usuario: sessionStorage.getItem('id')
             },
