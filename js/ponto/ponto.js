@@ -288,7 +288,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-thiagopaes.rhcloud.com/app/relatorio.php',
+            url: 'https://ponto-api-mrprompt.c9.io/public/relatorio.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 data: strData
@@ -483,7 +483,7 @@ Ponto = {
     _removerUsuario: function(lista) {
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-thiagopaes.rhcloud.com/app/userdel.php',
+            url: 'https://ponto-api-mrprompt.c9.io/public/userdel.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 usuarios: lista.join(',')
@@ -668,7 +668,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
+                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -723,7 +723,7 @@ Ponto = {
                     if (bValid === true) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-thiagopaes.rhcloud.com/app/login.php',
+                            url: 'https://ponto-api-mrprompt.c9.io/public/login.php',
                             data: $("#login-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -849,7 +849,7 @@ Ponto = {
                     "Registrar": function() {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-thiagopaes.rhcloud.com/app/ponto.php',
+                            url: 'https://ponto-api-mrprompt.c9.io/public/ponto.php',
                             data: {
                                 observacao: $("#ponto-form #observacao").val(),
                                 usuario: sessionStorage.getItem('id'),
@@ -950,7 +950,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
+                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
                             data: $('#cadastro-form form').serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1011,7 +1011,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-thiagopaes.rhcloud.com/app/cadastro.php',
+                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1099,7 +1099,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-thiagopaes.rhcloud.com/app/usuarios.php',
+            url: 'https://ponto-api-mrprompt.c9.io/public/usuarios.php',
             data: {
                 usuario: sessionStorage.getItem('id')
             },
