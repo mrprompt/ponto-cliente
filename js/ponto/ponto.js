@@ -22,11 +22,14 @@ var Ponto = {
      * Cria o ambiente
      */
     init: function() {
-        $('<section/>')
-        .attr('id', 'Ponto')
-        .appendTo($('#container'));
+        $('body > #container').empty();
+
+        $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
 
         if (sessionStorage.getItem('id') !== null) {
+            $('#login-form').dialog('close');
+            $('#login-form').remove();
+
             var header = $('<header/>');
             var menu = $('<ul/>');
 
@@ -59,7 +62,8 @@ var Ponto = {
                                     Ponto.logout();
                                 }))))
                     .append($('<span/>')
-                            .html('Logado como')
+                            .html('Logado como: ')
+                            .append($('<br/>'))
                             .append($('<b/>').html(sessionStorage.getItem('nome')))))
                 .insertBefore($('#Ponto'));
 
@@ -542,7 +546,9 @@ var Ponto = {
 
                     Ponto._criaSessao(objUsuario);
 
-                    window.location.reload();
+                    $(this).dialog('close');
+
+                    Ponto.init();
                 },
                 "Fechar": function() {
                     $(this).dialog('close');
@@ -738,8 +744,7 @@ var Ponto = {
                             success: function(retorno) {
                                 if (retorno.id) {
                                     Ponto._criaSessao(retorno);
-
-                                    window.parent.location.reload();
+                                    Ponto.init();
                                 } else {
                                     Ponto._showErro(retorno);
                                 }
@@ -792,12 +797,14 @@ var Ponto = {
 
                         sessionStorage.removeItem('inicial');
 
-                        window.location.reload();
+                        Ponto.init();
                     },
                     "Logout": function() {
                         sessionStorage.clear();
 
-                        window.location.reload();
+                        $(this).dialog('close');
+
+                        Ponto.init();
                     },
                     "Cancelar": function() {
                         $(this).dialog('close');
@@ -823,7 +830,9 @@ var Ponto = {
                     "Continuar": function() {
                         sessionStorage.clear();
 
-                        window.location.reload();
+                        $(this).dialog('close');
+
+                        Ponto.init();
                     },
                     "Cancelar": function() {
                         $(this).dialog('close');
@@ -947,8 +956,7 @@ var Ponto = {
             .attr('checked', true);
         }
 
-        $("#cadastro-form")
-        .dialog({
+        $("#cadastro-form").dialog({
             title: 'Preferências',
             width: 320,
             modal: true,
@@ -967,7 +975,10 @@ var Ponto = {
                                     if (retorno.id) {
                                         Ponto._criaSessao(retorno);
 
-                                        window.parent.location.reload();
+                                        $(this).dialog('close');
+                                        $('#cadastro-form').remove();
+
+                                        Ponto.init();
                                     } else {
                                         Ponto._showErro(retorno);
                                     }
@@ -1027,7 +1038,9 @@ var Ponto = {
                                 if (retorno.id) {
                                     Ponto._criaSessao(retorno);
 
-                                    window.parent.location.reload();
+                                    $(this).dialog('close');
+
+                                    Ponto.init();
                                 } else {
                                     Ponto._showErro(retorno);
                                 }
