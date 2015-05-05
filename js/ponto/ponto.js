@@ -16,6 +16,8 @@
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 Ponto = {
+    apiServer: 'https://ponto-api-mrprompt.c9.io',
+
     /**
      * Cria o ambiente
      */
@@ -288,7 +290,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-api-mrprompt.c9.io/public/relatorio.php',
+            url: Ponto.apiServer + '/relatorio.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 data: strData
@@ -483,7 +485,7 @@ Ponto = {
     _removerUsuario: function(lista) {
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-api-mrprompt.c9.io/public/userdel.php',
+            url: Ponto.apiServer + '/userdel.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
                 usuarios: lista.join(',')
@@ -668,7 +670,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
+                            url: Ponto.apiServer + '/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -723,7 +725,7 @@ Ponto = {
                     if (bValid === true) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-api-mrprompt.c9.io/public/login.php',
+                            url: Ponto.apiServer + '/login.php',
                             data: $("#login-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -739,13 +741,13 @@ Ponto = {
                     } else {
                         Ponto._showErro('Preencha todos os campos');
                     }
-                }/*,
+                },
                 "Cadastro": function() {
                     $('#login-form').dialog('close');
                     $('#login-form').remove();
 
                     Ponto.cadastro();
-                }*/
+                }
             },
             close: function() {
                 $('#login-form').remove();
@@ -849,7 +851,7 @@ Ponto = {
                     "Registrar": function() {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-api-mrprompt.c9.io/public/ponto.php',
+                            url: Ponto.apiServer + '/ponto.php',
                             data: {
                                 observacao: $("#ponto-form #observacao").val(),
                                 usuario: sessionStorage.getItem('id'),
@@ -950,7 +952,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
+                            url: Ponto.apiServer + '/cadastro.php',
                             data: $('#cadastro-form form').serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1011,7 +1013,7 @@ Ponto = {
                     if (bValid.length === 0) {
                         $.ajax({
                             type: 'POST',
-                            url: 'https://ponto-api-mrprompt.c9.io/public/cadastro.php',
+                            url: Ponto.apiServer + '/cadastro.php',
                             data: $("#cadastro-form form").serialize(),
                             success: function(retorno) {
                                 if (retorno.id) {
@@ -1099,7 +1101,7 @@ Ponto = {
 
         $.ajax({
             type: 'POST',
-            url: 'https://ponto-api-mrprompt.c9.io/public/usuarios.php',
+            url: Ponto.apiServer + '/usuarios.php',
             data: {
                 usuario: sessionStorage.getItem('id')
             },

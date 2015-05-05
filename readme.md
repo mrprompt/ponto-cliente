@@ -7,7 +7,7 @@ Este projeto foi concebido para atender minhas necessidades pessoais,
 além de ter como segundo objetivo, brincar com elementos dinâmicamente
 gerados pelo jQuery + jQuery UI.
 
-A base do projeto é HTML5, Session Storage, Javascript e Google Charts API. 
+A base do projeto é HTML5, Session Storage, Javascript e Google Charts API.
 Com isso, deu de brincar bastante.
 
 Características
@@ -25,3 +25,8 @@ Requerimentos
 
 - Conexão a internet (para gerar os gráficos)
 - Navegador compatível com HTML5 (principalmente Session Storage)
+
+Atenção
+-------
+Este é um projeto sem muitas pretensões, que visa apenas um controle mínimo
+de horas do autor. Assim como seus estudos em javascript e html5.
