@@ -62,9 +62,9 @@ var Ponto = {
                                     Ponto.logout();
                                 }))))
                     .append($('<span/>')
-                            .html('Logado como: ')
-                            .append($('<br/>'))
-                            .append($('<b/>').html(sessionStorage.getItem('nome')))))
+                        .html('Logado como: ')
+                        .append($('<br/>'))
+                        .append($('<b/>').html(sessionStorage.getItem('nome')))))
                 .insertBefore($('#Ponto'));
 
             if (sessionStorage.getItem('owner') == 'null') {
@@ -89,7 +89,8 @@ var Ponto = {
             }
 
             Ponto.relatorio();
-        } else {
+        }
+        else {
             Ponto.login();
         }
     },
@@ -99,22 +100,22 @@ var Ponto = {
      */
     _formLogin: function() {
         var $fieldset = $('<fieldset/>')
-        .append($('<label/>')
-            .attr('for', 'usuario')
-            .html('Usuário')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'usuario')
-                .attr('id', 'usuario')
-                .addClass('text ui-widget-content ui-corner-all')))
-        .append($('<label/>')
-            .attr('for', 'senha')
-            .html('Senha')
-            .append($('<input/>')
-                .attr('type', 'password')
-                .attr('name', 'senha')
-                .attr('id', 'senha')
-                .addClass('text ui-widget-content ui-corner-all')));
+            .append($('<label/>')
+                .attr('for', 'usuario')
+                .html('Usuário')
+                .append($('<input/>')
+                    .attr('type', 'text')
+                    .attr('name', 'usuario')
+                    .attr('id', 'usuario')
+                    .addClass('text ui-widget-content ui-corner-all')))
+            .append($('<label/>')
+                .attr('for', 'senha')
+                .html('Senha')
+                .append($('<input/>')
+                    .attr('type', 'password')
+                    .attr('name', 'senha')
+                    .attr('id', 'senha')
+                    .addClass('text ui-widget-content ui-corner-all')));
 
         return $('<form/>').append($fieldset);
     },
@@ -124,132 +125,136 @@ var Ponto = {
      */
     _formCadastro: function() {
         var $fieldset = $('<fieldset/>')
-        .append($('<label/>')
-            .attr('for', 'Nome')
-            .html('Nome')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'nome')
-                .attr('id', 'nome')
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<label/>')
-            .attr('for', 'usuario')
-            .html('Login')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'usuario')
-                .attr('id', 'usuario')
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<label/>')
-            .attr('for', 'email')
-            .html('E-mail')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'email')
-                .attr('id', 'email')
-                .addClass('text ui-widget-content ui-corner-all required email')))
-        .append($('<label/>')
-            .attr('for', 'senha')
-            .html('Senha')
-            .append($('<input/>')
-                .attr('type', 'password')
-                .attr('name', 'senha')
-                .attr('id', 'senha')
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<label/>')
-            .attr('for', 'senha_confirmacao')
-            .html('Repita')
-            .append($('<input/>')
-                .attr('type', 'password')
-                .attr('name', 'senha_confirmacao')
-                .attr('id', 'senha_confirmacao')
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<label/>')
-            .attr('for', 'horas_dia')
-            .html('Carga horária')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'horas_dia')
-                .attr('id', 'horas_dia')
-                .attr('maxlength', '2')
-                .mask('9?9',{placeholder:" "})
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<label/>')
-            .attr('for', 'horas_almoco')
-            .html('Intervalo')
-            .append($('<input/>')
-                .attr('type', 'text')
-                .attr('name', 'horas_almoco')
-                .attr('id', 'horas_almoco')
-                .attr('maxlength', '2')
-                .mask('9?9',{placeholder:" "})
-                .addClass('text ui-widget-content ui-corner-all required')))
-        .append($('<fieldset/>')
-            .append($('<legend/>')
-                .html('Dias de Trabalho'))
-            .addClass('diasTrabalho')
             .append($('<label/>')
-                .html('Dom')
+                .attr('for', 'Nome')
+                .html('Nome')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_0')
-                    .val('0')))
+                    .attr('type', 'text')
+                    .attr('name', 'nome')
+                    .attr('id', 'nome')
+                    .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
-                .html('Seg')
+                .attr('for', 'usuario')
+                .html('Login')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_1')
-                    .attr('checked', true)
-                    .val('1')))
+                    .attr('type', 'text')
+                    .attr('name', 'usuario')
+                    .attr('id', 'usuario')
+                    .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
-                .html('Ter')
+                .attr('for', 'email')
+                .html('E-mail')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_2')
-                    .attr('checked', true)
-                    .val('2')))
+                    .attr('type', 'text')
+                    .attr('name', 'email')
+                    .attr('id', 'email')
+                    .addClass('text ui-widget-content ui-corner-all required email')))
             .append($('<label/>')
-                .html('Qua')
+                .attr('for', 'senha')
+                .html('Senha')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_3')
-                    .attr('checked', true)
-                    .val('3')))
+                    .attr('type', 'password')
+                    .attr('name', 'senha')
+                    .attr('id', 'senha')
+                    .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
-                .html('Qui')
+                .attr('for', 'senha_confirmacao')
+                .html('Repita')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_4')
-                    .attr('checked', true)
-                    .val('4')))
+                    .attr('type', 'password')
+                    .attr('name', 'senha_confirmacao')
+                    .attr('id', 'senha_confirmacao')
+                    .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
-                .html('Sex')
+                .attr('for', 'horas_dia')
+                .html('Carga horária')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_5')
-                    .attr('checked', true)
-                    .val('5')))
+                    .attr('type', 'text')
+                    .attr('name', 'horas_dia')
+                    .attr('id', 'horas_dia')
+                    .attr('maxlength', '2')
+                    .mask('9?9', {
+                        placeholder: " "
+                    })
+                    .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
-                .html('Sáb')
+                .attr('for', 'horas_almoco')
+                .html('Intervalo')
                 .append($('<input/>')
-                    .attr('type', 'checkbox')
-                    .attr('name', 'dias_trabalho[]')
-                    .attr('id', 'dias_trabalho_6')
-                    .val('6'))))
-        .append($('<input/>')
-            .attr('type', 'hidden')
-            .attr('name', 'owner')
-            .attr('id', 'owner'))
-        .append($('<input/>')
-            .attr('type', 'hidden')
-            .attr('name', 'id')
-            .attr('id', 'id'));
+                    .attr('type', 'text')
+                    .attr('name', 'horas_almoco')
+                    .attr('id', 'horas_almoco')
+                    .attr('maxlength', '2')
+                    .mask('9?9', {
+                        placeholder: " "
+                    })
+                    .addClass('text ui-widget-content ui-corner-all required')))
+            .append($('<fieldset/>')
+                .append($('<legend/>')
+                    .html('Dias de Trabalho'))
+                .addClass('diasTrabalho')
+                .append($('<label/>')
+                    .html('Dom')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_0')
+                        .val('0')))
+                .append($('<label/>')
+                    .html('Seg')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_1')
+                        .attr('checked', true)
+                        .val('1')))
+                .append($('<label/>')
+                    .html('Ter')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_2')
+                        .attr('checked', true)
+                        .val('2')))
+                .append($('<label/>')
+                    .html('Qua')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_3')
+                        .attr('checked', true)
+                        .val('3')))
+                .append($('<label/>')
+                    .html('Qui')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_4')
+                        .attr('checked', true)
+                        .val('4')))
+                .append($('<label/>')
+                    .html('Sex')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_5')
+                        .attr('checked', true)
+                        .val('5')))
+                .append($('<label/>')
+                    .html('Sáb')
+                    .append($('<input/>')
+                        .attr('type', 'checkbox')
+                        .attr('name', 'dias_trabalho[]')
+                        .attr('id', 'dias_trabalho_6')
+                        .val('6'))))
+            .append($('<input/>')
+                .attr('type', 'hidden')
+                .attr('name', 'owner')
+                .attr('id', 'owner'))
+            .append($('<input/>')
+                .attr('type', 'hidden')
+                .attr('name', 'id')
+                .attr('id', 'id'));
 
         var $form = $('<form/>')
             .attr('id', 'frmCadastro')
@@ -263,32 +268,32 @@ var Ponto = {
      */
     _formPonto: function() {
         var $fieldset = $('<fieldset/>')
-        .append($('<label/>')
-            .attr('for', 'observacao')
-            .html('Observação')
-            .append($('<textarea/>')
-                .attr('name', 'observacao')
-                .attr('id', 'observacao')
-                .addClass('text ui-widget-content ui-corner-all')))
-        .append($('<label/>')
-            .attr('for', 'tipoEntrada')
-            .html('Entrada')
-            .addClass('radioContainer')
-            .append($('<input/>')
-                .attr('type', 'radio')
-                .attr('name', 'tipo')
-                .attr('id', 'tipoEntrada')
-                .attr('checked', 'checked')
-                .val('entrada')))
-        .append($('<label/>')
-            .attr('for', 'tipoSaida')
-            .html('Saída')
-            .addClass('radioContainer')
-            .append($('<input/>')
-                .attr('type', 'radio')
-                .attr('name', 'tipo')
-                .attr('id', 'tipoSaida')
-                .val('saida')));
+            .append($('<label/>')
+                .attr('for', 'observacao')
+                .html('Observação')
+                .append($('<textarea/>')
+                    .attr('name', 'observacao')
+                    .attr('id', 'observacao')
+                    .addClass('text ui-widget-content ui-corner-all')))
+            .append($('<label/>')
+                .attr('for', 'tipoEntrada')
+                .html('Entrada')
+                .addClass('radioContainer')
+                .append($('<input/>')
+                    .attr('type', 'radio')
+                    .attr('name', 'tipo')
+                    .attr('id', 'tipoEntrada')
+                    .attr('checked', 'checked')
+                    .val('entrada')))
+            .append($('<label/>')
+                .attr('for', 'tipoSaida')
+                .html('Saída')
+                .addClass('radioContainer')
+                .append($('<input/>')
+                    .attr('type', 'radio')
+                    .attr('name', 'tipo')
+                    .attr('id', 'tipoSaida')
+                    .val('saida')));
 
         return $('<form/>').append($fieldset);
     },
@@ -309,80 +314,81 @@ var Ponto = {
             },
             success: function(retorno) {
                 $('<div/>').attr('class', 'widget-relatorio')
-                .addClass('ui-widget ui-widget-content ui-helper-clearfix ui-corner-all')
-                .append($('<table/>')
-                .attr('id', 'tbRelatorio'))
-                .appendTo($('#Ponto'));
+                    .addClass('ui-widget ui-widget-content ui-helper-clearfix ui-corner-all')
+                    .append($('<table/>')
+                        .attr('id', 'tbRelatorio'))
+                    .appendTo($('#Ponto'));
 
                 $('<thead/>')
-                .append($('<tr/>')
-                    .append($('<th/>')
-                        .addClass('data')
-                        .html('Data'))
-                    .append($('<th/>')
-                        .addClass('entrada')
-                        .html('Entrada'))
-                    .append($('<th/>')
-                        .addClass('saida')
-                        .html('Saída'))
-                    .append($('<th/>')
-                        .addClass('horas')
-                        .html('Horas')))
-                .addClass('ui-widget-header ui-helper-clearfix ui-corner-all')
-                .appendTo($('#tbRelatorio'));
+                    .append($('<tr/>')
+                        .append($('<th/>')
+                            .addClass('data')
+                            .html('Data'))
+                        .append($('<th/>')
+                            .addClass('entrada')
+                            .html('Entrada'))
+                        .append($('<th/>')
+                            .addClass('saida')
+                            .html('Saída'))
+                        .append($('<th/>')
+                            .addClass('horas')
+                            .html('Horas')))
+                    .addClass('ui-widget-header ui-helper-clearfix ui-corner-all')
+                    .appendTo($('#tbRelatorio'));
 
                 $('<tbody/>').appendTo($('#tbRelatorio'));
 
                 if (retorno.length !== 0) {
                     $.each(retorno, function() {
                         var $linha = $('<tr/>')
-                        .appendTo($('#tbRelatorio tbody'));
+                            .appendTo($('#tbRelatorio tbody'));
 
                         $linha.append($('<td/>')
-                            .addClass('data')
-                            .html(this.data))
-                        .append($('<td/>')
-                            .addClass('entrada')
-                            .html(this.entrada))
-                        .append($('<td/>')
-                            .addClass('saida')
-                            .html(this.saida))
-                        .append($('<td/>')
-                            .addClass('horas')
-                            .html(this.horas));
+                                .addClass('data')
+                                .html(this.data))
+                            .append($('<td/>')
+                                .addClass('entrada')
+                                .html(this.entrada))
+                            .append($('<td/>')
+                                .addClass('saida')
+                                .html(this.saida))
+                            .append($('<td/>')
+                                .addClass('horas')
+                                .html(this.horas));
 
                         var $obs = this.obs;
 
                         if (typeof($obs) === 'string' && $obs.length !== 0) {
                             $linha.attr('title', $obs)
-                            .addClass('comObs')
-                            .tinyTips('title');
+                                .addClass('comObs')
+                                .tinyTips('title');
                         }
                     });
 
                     // verificando se cumpriu o expediente
-                    var horas_dia               = parseInt(sessionStorage.getItem('horas_dia'), 10);
-                    var intExpediente           = horas_dia * 60;
-                    var intExpedienteCheio      = 0;
+                    var horas_dia = parseInt(sessionStorage.getItem('horas_dia'), 10);
+                    var intExpediente = horas_dia * 60;
+                    var intExpedienteCheio = 0;
                     var intExpedienteIncompleto = 0;
-                    var arrExpedienteMinutos    = new Array();
-                    var arrExpedienteHoras      = new Array();
-                    var intHorasTotal           = 0;
+                    var arrExpedienteMinutos = new Array();
+                    var arrExpedienteHoras = new Array();
+                    var intHorasTotal = 0;
 
                     $('#tbRelatorio tbody tr').each(function() {
-                        var $linha      = $(this);
-                        var strData     = $linha.find('td:eq(0)').html();
-                        var strHoras    = $linha.find('td:eq(3)').html();
-                        var intDia      = parseInt(strData.substr(0, 2), 10);
-                        var intHora     = parseInt(strHoras.substr(0, 2), 10);
-                        var intMinuto   = parseInt(strHoras.substr(3, 2), 10);
+                        var $linha = $(this);
+                        var strData = $linha.find('td:eq(0)').html();
+                        var strHoras = $linha.find('td:eq(3)').html();
+                        var intDia = parseInt(strData.substr(0, 2), 10);
+                        var intHora = parseInt(strHoras.substr(0, 2), 10);
+                        var intMinuto = parseInt(strHoras.substr(3, 2), 10);
 
                         // crio uma classe para todas as linhas de mesmo dia
                         $linha.addClass('dia' + intDia);
 
                         if (arrExpedienteMinutos[intDia]) {
                             arrExpedienteMinutos[intDia] = arrExpedienteMinutos[intDia] + ((intHora * 60) + intMinuto);
-                        } else {
+                        }
+                        else {
                             arrExpedienteMinutos[intDia] = ((intHora * 60) + intMinuto);
                         }
 
@@ -396,7 +402,8 @@ var Ponto = {
                             $('#tbRelatorio tbody tr.dia' + i).addClass('expedienteMenor');
 
                             intExpedienteIncompleto++;
-                        } else {
+                        }
+                        else {
                             intExpedienteCheio++;
                         }
                     }
@@ -405,44 +412,47 @@ var Ponto = {
                     var objGraphMedia = new jGCharts.Api();
 
                     $('<img>')
-                    .attr('src', objGraphMedia.make({
-                        data        : [[intExpedienteCheio], [intExpedienteIncompleto]],
-                        type        : 'p3',
-                        size        : '250x150',
-                        axis_labels : ['Sim', 'Não'],
-                        title       : 'Pontualidade'
-                    }))
-                    .addClass('widget-grafico')
-                    .appendTo($('#Ponto'));
+                        .attr('src', objGraphMedia.make({
+                            data: [
+                                [intExpedienteCheio],
+                                [intExpedienteIncompleto]
+                            ],
+                            type: 'p3',
+                            size: '250x150',
+                            axis_labels: ['Sim', 'Não'],
+                            title: 'Pontualidade'
+                        }))
+                        .addClass('widget-grafico')
+                        .appendTo($('#Ponto'));
 
                     // gero um gráfico por dia de barras com as horas trabalhadas por dia
                     var objGraphExpediente = new jGCharts.Api();
 
                     $('<img>')
-                    .attr('src', objGraphExpediente.make({
-                        data        : [arrExpedienteHoras],
-                        axis_labels : ['Dias Trabalhados'],
-                        size        : '250x150',
-                        type        : 'bvg',
-                        colors      : ['41599b'],
-                        bar_width   : 5,
-                        bar_spacing : 1,
-                        title       : 'Horas trabalhadas por dia'
-                    }))
-                    .addClass('widget-grafico')
-                    .appendTo($('#Ponto'));
+                        .attr('src', objGraphExpediente.make({
+                            data: [arrExpedienteHoras],
+                            axis_labels: ['Dias Trabalhados'],
+                            size: '250x150',
+                            type: 'bvg',
+                            colors: ['41599b'],
+                            bar_width: 5,
+                            bar_spacing: 1,
+                            title: 'Horas trabalhadas por dia'
+                        }))
+                        .addClass('widget-grafico')
+                        .appendTo($('#Ponto'));
 
                     // gero um gráfico informando se supriu as horas mensais
                     // contabilizando as horas trabalhadas
                     var arrDiasTrabalho = sessionStorage.getItem('dias_trabalho').split(',');
-                    var intDiasMes      = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
-                    var intDiasMeta     = 0;
+                    var intDiasMes = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
+                    var intDiasMeta = 0;
 
                     // aponto o objeto da data para o primeiro dia do mês informado
                     var arrData = strData.split('-');
                     var objData = new Date(arrData[0], arrData[1], arrData[2]);
-                        objData.setMonth(arrData[1] - 1);
-                        objData.setDate(1);
+                    objData.setMonth(arrData[1] - 1);
+                    objData.setDate(1);
 
                     // contando os dias da semana que o usuário trabalha
                     for (i = 1; i <= intDiasMes; i++) {
@@ -463,28 +473,31 @@ var Ponto = {
                     var intHorasMes = horas_dia * intDiasMeta;
 
                     $('<img>')
-                    .attr('src', objGraphMeta.make({
-                        data        : [[intHorasTotal, intHorasMes]],
-                        type        : 'bhg',
-                        size        : '250x120',
-                        axis_labels : [' '],
-                        legend      : ['Cumpridas (' + intHorasTotal + ')', 'Mensal (' + intHorasMes + ')'],
-                        title       : 'Meta de horas do mês',
-                        colors      : ['DDD6F5', '5131C9'],
-                        bar_width   : 30,
-                        bar_spacing : 10,
-                        grid        : false
-                    }))
-                    .addClass('widget-grafico')
-                    .appendTo($('#Ponto'));
-                } else {
+                        .attr('src', objGraphMeta.make({
+                            data: [
+                                [intHorasTotal, intHorasMes]
+                            ],
+                            type: 'bhg',
+                            size: '250x120',
+                            axis_labels: [' '],
+                            legend: ['Cumpridas (' + intHorasTotal + ')', 'Mensal (' + intHorasMes + ')'],
+                            title: 'Meta de horas do mês',
+                            colors: ['DDD6F5', '5131C9'],
+                            bar_width: 30,
+                            bar_spacing: 10,
+                            grid: false
+                        }))
+                        .addClass('widget-grafico')
+                        .appendTo($('#Ponto'));
+                }
+                else {
                     // sem relatório
                     $('<tr/>')
-                    .append($('<td/>')
-                        .attr('colspan', '4')
-                        .addClass('noResult')
-                        .html('Sem relatório para este período'))
-                    .appendTo($('#tbRelatorio tbody'));
+                        .append($('<td/>')
+                            .attr('colspan', '4')
+                            .addClass('noResult')
+                            .html('Sem relatório para este período'))
+                        .appendTo($('#tbRelatorio tbody'));
                 }
             },
             dataType: 'json'
@@ -500,12 +513,13 @@ var Ponto = {
             url: Ponto.apiServer + '/userdel.php',
             data: {
                 usuario: sessionStorage.getItem('id'),
-                usuarios: lista.join(',')
+                usuarios: lista.join('|')
             },
             success: function(retorno) {
                 if (retorno == true) {
                     Ponto.usuarios();
-                } else {
+                }
+                else {
                     $(this).dialog('close');
 
                     Ponto._showErro(retorno);
@@ -520,9 +534,9 @@ var Ponto = {
      */
     _trocaUsuario: function(objUsuario) {
         $('<div/>')
-        .attr('id', 'troca-form')
-        .html('Você deseja efetuar login como este usuário?')
-        .appendTo($('#Ponto'));
+            .attr('id', 'troca-form')
+            .html('Você deseja efetuar login como este usuário?')
+            .appendTo($('#Ponto'));
 
         $("#troca-form").dialog({
             title: 'Logar como usuário',
@@ -570,22 +584,22 @@ var Ponto = {
      */
     _showErro: function(mensagem) {
         $('<div/>')
-        .html(mensagem)
-        .attr('id', 'error')
-        .appendTo($('#Ponto'))
-        .dialog({
-            title:'Erro',
-            width: 350,
-            resizable: false,
-            modal: true,
-            buttons: {
-                'Fechar': function() {
-                    $(this).dialog('close');
+            .html(mensagem)
+            .attr('id', 'error')
+            .appendTo($('#Ponto'))
+            .dialog({
+                title: 'Erro',
+                width: 350,
+                resizable: false,
+                modal: true,
+                buttons: {
+                    'Fechar': function() {
+                        $(this).dialog('close');
 
-                    $('#error').remove();
+                        $('#error').remove();
+                    }
                 }
-            }
-        });
+            });
     },
 
     /**
@@ -593,22 +607,22 @@ var Ponto = {
      */
     _showMsg: function(mensagem) {
         $('<div/>')
-        .html(mensagem)
-        .attr('id', 'message')
-        .appendTo($('#Ponto'))
-        .dialog({
-            title:'',
-            width: 350,
-            resizable: false,
-            modal: true,
-            buttons: {
-                'Fechar': function() {
-                    $(this).dialog('close');
+            .html(mensagem)
+            .attr('id', 'message')
+            .appendTo($('#Ponto'))
+            .dialog({
+                title: '',
+                width: 350,
+                resizable: false,
+                modal: true,
+                buttons: {
+                    'Fechar': function() {
+                        $(this).dialog('close');
 
-                    $('#message').remove();
+                        $('#message').remove();
+                    }
                 }
-            }
-        });
+            });
     },
 
     /**
@@ -668,8 +682,8 @@ var Ponto = {
      */
     _adicionarUsuario: function() {
         $('<div/>')
-        .attr('id', 'cadastro-form')
-        .appendTo($('#Ponto'));
+            .attr('id', 'cadastro-form')
+            .appendTo($('#Ponto'));
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
@@ -696,13 +710,15 @@ var Ponto = {
                                     $('#cadastro-form').remove();
 
                                     Ponto._showMsg('Usuário cadastrado.');
-                                } else {
+                                }
+                                else {
                                     Ponto._showErro(retorno);
                                 }
                             },
                             dataType: 'json'
                         });
-                    } else {
+                    }
+                    else {
                         Ponto._showErro(bValid);
                     }
                 },
@@ -723,8 +739,8 @@ var Ponto = {
      */
     login: function() {
         $('<div/>')
-        .attr('id', 'login-form')
-        .appendTo($('#Ponto'));
+            .attr('id', 'login-form')
+            .appendTo($('#Ponto'));
 
         $('#login-form').append(Ponto._formLogin());
 
@@ -736,8 +752,8 @@ var Ponto = {
             buttons: {
                 "Login": function() {
                     var bValid = true;
-                        bValid = bValid && $('#usuario').val().length !== 0;
-                        bValid = bValid && $('#senha').val().length !== 0;
+                    bValid = bValid && $('#usuario').val().length !== 0;
+                    bValid = bValid && $('#senha').val().length !== 0;
 
                     if (bValid === true) {
                         $.ajax({
@@ -748,13 +764,15 @@ var Ponto = {
                                 if (retorno.id) {
                                     Ponto._criaSessao(retorno);
                                     Ponto.init();
-                                } else {
+                                }
+                                else {
                                     Ponto._showErro(retorno);
                                 }
                             },
                             dataType: 'json'
                         });
-                    } else {
+                    }
+                    else {
                         Ponto._showErro('Preencha todos os campos');
                     }
                 },
@@ -785,70 +803,71 @@ var Ponto = {
             mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
-            .attr('id', 'troca-form')
-            .html(mensagem)
-            .appendTo($('#Ponto'))
-            .dialog({
-                title: 'Logout',
-                width: 400,
-                modal: true,
-                resizable: false,
-                buttons: {
-                    "Voltar ao estado inicial": function() {
-                        // salvo o estado do usuário inicial
-                        Ponto._criaSessao(original);
+                .attr('id', 'troca-form')
+                .html(mensagem)
+                .appendTo($('#Ponto'))
+                .dialog({
+                    title: 'Logout',
+                    width: 400,
+                    modal: true,
+                    resizable: false,
+                    buttons: {
+                        "Voltar ao estado inicial": function() {
+                            // salvo o estado do usuário inicial
+                            Ponto._criaSessao(original);
 
-                        sessionStorage.removeItem('inicial');
+                            sessionStorage.removeItem('inicial');
 
-                        $(this).dialog('close');
-                        $("#troca-form").remove();
+                            $(this).dialog('close');
+                            $("#troca-form").remove();
 
-                        Ponto.init();
+                            Ponto.init();
+                        },
+                        "Logout": function() {
+                            sessionStorage.clear();
+
+                            $(this).dialog('close');
+                            $("#troca-form").remove();
+
+                            Ponto.init();
+                        },
+                        "Cancelar": function() {
+                            $(this).dialog('close');
+                        }
                     },
-                    "Logout": function() {
-                        sessionStorage.clear();
-
-                        $(this).dialog('close');
+                    close: function() {
                         $("#troca-form").remove();
-
-                        Ponto.init();
-                    },
-                    "Cancelar": function() {
-                        $(this).dialog('close');
                     }
-                },
-                close: function() {
-                    $("#troca-form").remove();
-                }
-            });
-        } else {
+                });
+        }
+        else {
             mensagem = 'Efetuar logout?';
 
             $('<div/>')
-            .attr('id', 'troca-form')
-            .html(mensagem)
-            .appendTo($('#Ponto'))
-            .dialog({
-                title: 'Logout',
-                width: 350,
-                modal: true,
-                resizable: false,
-                buttons: {
-                    "Continuar": function() {
-                        sessionStorage.clear();
+                .attr('id', 'troca-form')
+                .html(mensagem)
+                .appendTo($('#Ponto'))
+                .dialog({
+                    title: 'Logout',
+                    width: 350,
+                    modal: true,
+                    resizable: false,
+                    buttons: {
+                        "Continuar": function() {
+                            sessionStorage.clear();
 
-                        $(this).dialog('close');
+                            $(this).dialog('close');
 
-                        Ponto.init();
+                            Ponto.init();
+                        },
+                        "Cancelar": function() {
+                            $(this).dialog('close');
+                        }
                     },
-                    "Cancelar": function() {
-                        $(this).dialog('close');
+                    close: function() {
+                        $("#troca-form").remove();
                     }
-                },
-                close: function() {
-                    $("#troca-form").remove();
-                }
-            });
+                });
         }
     },
 
@@ -861,59 +880,59 @@ var Ponto = {
 
         if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
             $('<div/>')
-            .attr('id', 'ponto-form')
-            .appendTo($('#Ponto'));
+                .attr('id', 'ponto-form')
+                .appendTo($('#Ponto'));
 
             $('#ponto-form')
-            .append(Ponto._formPonto())
-            .dialog({
-                title: 'Registro de Ponto',
-                width: 350,
-                modal: true,
-                resizable: false,
-                buttons: {
-                    "Registrar": function() {
-                        $.ajax({
-                            type: 'POST',
-                            url: Ponto.apiServer + '/ponto.php',
-                            data: {
-                                observacao: $("#ponto-form #observacao").val(),
-                                usuario: sessionStorage.getItem('id'),
-                                tipo: $("#ponto-form input[@name='tipo']:checked").val()
-                            },
-                            success: function(retorno) {
-                                $(this).dialog('close');
+                .append(Ponto._formPonto())
+                .dialog({
+                    title: 'Registro de Ponto',
+                    width: 350,
+                    modal: true,
+                    resizable: false,
+                    buttons: {
+                        "Registrar": function() {
+                            $.ajax({
+                                type: 'POST',
+                                url: Ponto.apiServer + '/ponto.php',
+                                data: {
+                                    observacao: $("#ponto-form #observacao").val(),
+                                    usuario: sessionStorage.getItem('id'),
+                                    tipo: $("#ponto-form input[@name='tipo']:checked").val()
+                                },
+                                success: function(retorno) {
+                                    $(this).dialog('close');
 
-                                $("#ponto-form").remove();
+                                    $("#ponto-form").remove();
 
-                                $('<div/>').html(retorno)
-                                .attr('id', 'sucesso-ponto')
-                                .appendTo($('#Ponto'))
-                                .dialog({
-                                    title:'Registro de Ponto',
-                                    width: 250,
-                                    resizable: false,
-                                    modal: true,
-                                    buttons: {
-                                        'Fechar': function() {
-                                            $('#sucesso-ponto').remove();
+                                    $('<div/>').html(retorno)
+                                        .attr('id', 'sucesso-ponto')
+                                        .appendTo($('#Ponto'))
+                                        .dialog({
+                                            title: 'Registro de Ponto',
+                                            width: 250,
+                                            resizable: false,
+                                            modal: true,
+                                            buttons: {
+                                                'Fechar': function() {
+                                                    $('#sucesso-ponto').remove();
 
-                                            Ponto.relatorio();
-                                        }
-                                    }
-                                });
-                            },
-                            dataType: 'json'
-                        });
+                                                    Ponto.relatorio();
+                                                }
+                                            }
+                                        });
+                                },
+                                dataType: 'json'
+                            });
+                        },
+                        "Fechar": function() {
+                            $(this).dialog('close');
+                        }
                     },
-                    "Fechar": function() {
-                        $(this).dialog('close');
+                    close: function() {
+                        $("#ponto-form").remove();
                     }
-                },
-                close: function() {
-                    $("#ponto-form").remove();
-                }
-            });
+                });
 
             // checando o botão correto
             if ($('#tbRelatorio')[0]) {
@@ -921,7 +940,8 @@ var Ponto = {
                     $('#tipoSaida').attr('checked', 'true');
                 }
             }
-        } else {
+        }
+        else {
             Ponto._showErro('Pelas suas configurações, não é possível bater o ponto hoje.');
         }
     },
@@ -931,9 +951,9 @@ var Ponto = {
      */
     preferencias: function() {
         $('<div/>')
-        .attr('id', 'cadastro-form')
-        .addClass('widget-preferencias')
-        .appendTo($('#Ponto'));
+            .attr('id', 'cadastro-form')
+            .addClass('widget-preferencias')
+            .appendTo($('#Ponto'));
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
@@ -956,11 +976,11 @@ var Ponto = {
         var $dias = sessionStorage.getItem('dias_trabalho').split(',');
 
         $('#cadastro-form form input[type=checkbox]')
-        .attr('checked', false);
+            .attr('checked', false);
 
         for (var i in $dias) {
             $('#cadastro-form form #dias_trabalho_' + $dias[i])
-            .attr('checked', true);
+                .attr('checked', true);
         }
 
         $("#cadastro-form").dialog({
@@ -986,10 +1006,12 @@ var Ponto = {
                                         $('#cadastro-form').remove();
 
                                         Ponto.init();
-                                    } else {
+                                    }
+                                    else {
                                         Ponto._showErro(retorno);
                                     }
-                                } else {
+                                }
+                                else {
                                     $(this).dialog('close');
 
                                     Ponto._showErro(retorno);
@@ -997,7 +1019,8 @@ var Ponto = {
                             },
                             dataType: 'json'
                         });
-                    } else {
+                    }
+                    else {
                         Ponto._showErro(bValid);
                     }
                 },
@@ -1022,8 +1045,8 @@ var Ponto = {
      */
     cadastro: function() {
         $('<div/>')
-        .attr('id', 'cadastro-form')
-        .appendTo($('#Ponto'));
+            .attr('id', 'cadastro-form')
+            .appendTo($('#Ponto'));
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
@@ -1051,13 +1074,15 @@ var Ponto = {
 
                                     Ponto.init();
                                     Ponto._showMsg('Bem vindo :)');
-                                } else {
+                                }
+                                else {
                                     Ponto._showErro(retorno);
                                 }
                             },
                             dataType: 'json'
                         });
-                    } else {
+                    }
+                    else {
                         Ponto._showErro(bValid);
                     }
                 },
@@ -1079,7 +1104,7 @@ var Ponto = {
     relatorio: function() {
         $('#Ponto').empty();
 
-        var objData  = new Date();
+        var objData = new Date();
         var mesAtual = new Number(objData.getMonth()) + 1;
         var diaAtual = new Number(objData.getDate());
 
@@ -1089,34 +1114,36 @@ var Ponto = {
 
         // monto um calendário para poder filtrar o relatório
         $('<div/>')
-        .attr('class', 'widget-calendario')
-        .appendTo($('#Ponto'))
-        .datepicker({
-            monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-            'Julho','Agosto','Setembro','Outubro','Novembro',
-            'Dezembro'],
-            dayNamesMin: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'],
-            dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta',
-            'Sexta', 'Sábado'],
-            dateFormat: 'yy-mm-dd',
-            firstDay: 0,
-            prevText: 'Anterior',
-            nextText: 'Pr&oacute;ximo',
-            defaultDate: ano + '-' + mes + '-' + dia,
-            showOtherMonths: false,
-            selectOtherMonths: false,
-            hideIfNoPrevNext: true,
-            maxDate: '+0d',
-            onSelect: function(dateText, inst) {
-                var arrData = dateText.split('-');
-                var strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2];
+            .attr('class', 'widget-calendario')
+            .appendTo($('#Ponto'))
+            .datepicker({
+                monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro',
+                    'Dezembro'
+                ],
+                dayNamesMin: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'],
+                dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta',
+                    'Sexta', 'Sábado'
+                ],
+                dateFormat: 'yy-mm-dd',
+                firstDay: 0,
+                prevText: 'Anterior',
+                nextText: 'Pr&oacute;ximo',
+                defaultDate: ano + '-' + mes + '-' + dia,
+                showOtherMonths: false,
+                selectOtherMonths: false,
+                hideIfNoPrevNext: true,
+                maxDate: '+0d',
+                onSelect: function(dateText, inst) {
+                    var arrData = dateText.split('-');
+                    var strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2];
 
-                Ponto._criaRelatorio(strData);
-            },
-            onChangeMonthYear: function(year, month, inst) {
-                Ponto._criaRelatorio(year + '-' + month + '-31');
-            }
-        });
+                    Ponto._criaRelatorio(strData);
+                },
+                onChangeMonthYear: function(year, month, inst) {
+                    Ponto._criaRelatorio(year + '-' + month + '-31');
+                }
+            });
 
         // crio um relatório com a data atual
         Ponto._criaRelatorio(ano + '-' + mes + '-' + dia);
@@ -1127,8 +1154,8 @@ var Ponto = {
      */
     usuarios: function() {
         $('<div/>')
-        .addClass('widget-usuarios')
-        .appendTo($('#Ponto'));
+            .addClass('widget-usuarios')
+            .appendTo($('#Ponto'));
 
         $.ajax({
             type: 'POST',
@@ -1139,60 +1166,61 @@ var Ponto = {
             success: function(retorno) {
                 if (retorno.length !== 0) {
                     $('<table/>')
-                    .attr('id', 'tbUsuarios')
-                    .appendTo($('.widget-usuarios'));
+                        .attr('id', 'tbUsuarios')
+                        .appendTo($('.widget-usuarios'));
 
                     $('<tbody/>')
-                    .append($('<tr/>')
-                        .append($('<td/>')
-                            .addClass('id')
-                            .html('#'))
-                        .append($('<td/>')
-                            .addClass('login')
-                            .html('Login'))
-                        .append($('<td/>')
-                            .addClass('nome')
-                            .html('Nome'))
-                        .append($('<td/>')
-                            .addClass('email')
-                            .html('E-mail'))
-                        .append($('<td/>')
-                            .addClass('expediente')
-                            .html('Expediente'))
-                        .addClass('ui-widget-header'))
-                    .appendTo($('#tbUsuarios'));
+                        .append($('<tr/>')
+                            .append($('<td/>')
+                                .addClass('id')
+                                .html('#'))
+                            .append($('<td/>')
+                                .addClass('login')
+                                .html('Login'))
+                            .append($('<td/>')
+                                .addClass('nome')
+                                .html('Nome'))
+                            .append($('<td/>')
+                                .addClass('email')
+                                .html('E-mail'))
+                            .append($('<td/>')
+                                .addClass('expediente')
+                                .html('Expediente'))
+                            .addClass('ui-widget-header'))
+                        .appendTo($('#tbUsuarios'));
 
                     $.each(retorno, function(intLinha, objUsuario) {
                         var $linha = $('<tr/>').appendTo($('#tbUsuarios tbody'));
 
                         $linha.append($('<td/>')
-                            .addClass('id')
-                            .append($('<input/>')
-                            .attr('type', 'checkbox')
-                            .attr('name', 'usuario[]')
-                            .attr('id', 'usuario_' + this.id)
-                            .val(this.id)
-                            ))
-                        .append($('<td/>')
-                            .addClass('login')
-                            .html(this.login)
-                            .click(function() {
-                                Ponto._trocaUsuario(objUsuario);
-                            }))
-                        .append($('<td/>')
-                            .addClass('nome')
-                            .html(this.nome)
-                            .click(function() {
-                                Ponto._trocaUsuario(objUsuario);
-                            }))
-                        .append($('<td/>')
-                            .addClass('email')
-                            .html(this.email))
-                        .append($('<td/>')
-                            .addClass('expediente')
-                            .html(this.horas_dia + ' / ' + this.horas_almoco));
+                                .addClass('id')
+                                .append($('<input/>')
+                                    .attr('type', 'checkbox')
+                                    .attr('name', 'usuario[]')
+                                    .attr('id', 'usuario_' + this.id)
+                                    .val(this.id)
+                                ))
+                            .append($('<td/>')
+                                .addClass('login')
+                                .html(this.login)
+                                .click(function() {
+                                    Ponto._trocaUsuario(objUsuario);
+                                }))
+                            .append($('<td/>')
+                                .addClass('nome')
+                                .html(this.nome)
+                                .click(function() {
+                                    Ponto._trocaUsuario(objUsuario);
+                                }))
+                            .append($('<td/>')
+                                .addClass('email')
+                                .html(this.email))
+                            .append($('<td/>')
+                                .addClass('expediente')
+                                .html(this.horas_dia + ' / ' + this.horas_almoco));
                     });
-                } else {
+                }
+                else {
                     // sem sub usuários
                     $('<div/>')
                         .addClass('noResult')
@@ -1218,66 +1246,40 @@ var Ponto = {
                             });
 
                             if ($lista.length !== 0) {
-                                var $msg = 'Remover permanentemente o(s) usuário(s) '
-                                + 'selecionado(s)? <br>'
-                                + 'Todos os dados relacionados a este usuário '
-                                + 'serão removidos de forma irreversível.';
+                                var $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.';
 
                                 $('<div/>')
-                                .attr('id', 'apagar-form')
-                                .html($msg)
-                                .appendTo($('#Ponto'))
-                                .dialog({
-                                    title: 'Remover usuários',
-                                    width: 400,
-                                    modal: true,
-                                    resizable: false,
-                                    buttons: {
-                                        "Continuar": function() {
-                                            $(this).dialog('close');
+                                    .attr('id', 'apagar-form')
+                                    .html($msg)
+                                    .appendTo($('#Ponto'))
+                                    .dialog({
+                                        title: 'Remover usuários',
+                                        width: 400,
+                                        modal: true,
+                                        resizable: false,
+                                        buttons: {
+                                            "Continuar": function() {
+                                                $(this).dialog('close');
 
-                                            $('#apagar-form').remove();
+                                                $('#apagar-form').remove();
+                                                $(".widget-usuarios").remove();
 
-                                            Ponto._removerUsuario($lista);
+                                                Ponto._removerUsuario($lista);
+                                                Ponto.init();
+                                            },
+                                            "Fechar": function() {
+                                                $(this).dialog('close');
+
+                                                $('#apagar-form').remove();
+                                            }
                                         },
-                                        "Fechar": function() {
-                                            $(this).dialog('close');
-
-                                            $('#apagar-form').remove();
+                                        close: function() {
+                                            $("#apagar-form").remove();
                                         }
-                                    },
-                                    close: function() {
-                                        $("#apagar-form").remove();
-                                    }
-                                });
-                            } else {
-                                $('<div/>')
-                                .attr('id', 'apagar-form')
-                                .html('Selecione algum usuário.')
-                                .appendTo($('#Ponto'))
-                                .dialog({
-                                    title: 'Remover usuários',
-                                    width: 400,
-                                    modal: true,
-                                    resizable: false,
-                                    buttons: {
-                                        "Continuar": function() {
-                                            $(this).dialog('close');
-
-                                            $('#apagar-form').remove();
-
-                                            Ponto._removerUsuario($lista);
-                                        },
-                                        "Fechar": function() {
-                                            $(this).dialog('close');
-
-                                            $('#apagar-form').remove();
-                                        }
-                                    },
-                                    close: function() {
-                                        $("#apagar-form").remove();
-                                    }
-                                });
+                                    });
+                            }
+                            else {
+                                Ponto._showErro('Selecione algum usuário para remover.');
                             }
                         },
                         "Fechar": function() {
