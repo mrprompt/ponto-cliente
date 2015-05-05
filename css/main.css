@@ -1,94 +1,8 @@
 /*
     Created on : May 23, 2011, 5:57:26 PM
     Author     : Thiago Paes <mrprompt@gmail.com>
-    Description:
-        Definição de layout do ponto eletrônico
-        Reset by html5doctor.com - v1.4 - 2009-07-27
-        Richard Clark - http://richclarkdesign.com
+    Description: Definição de layout do ponto eletrônico
 */
-/* --- reset */
-html, body, div, span, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-abbr, address, cite, code,
-del, dfn, em, img, ins, kbd, q, samp,
-small, strong, sub, sup, var,
-b, i,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, dialog, figure, footer, header,
-hgroup, menu, nav, section,
-time, mark, audio, video {
-    margin:0;
-    padding:0;
-    border:0;
-    outline:0;
-    font-size:100%;
-    vertical-align:baseline;
-    background:transparent;
-}
-body {
-    line-height:1;
-    font:75%/1.5em Arial, Helvetica, "Liberation sans", "Bitstream Vera Sans", sans-serif;
-}
-article, aside, dialog, figure, footer, header,
-hgroup, nav, section {
-    display:block;
-}
-nav ul {
-    list-style:none;
-}
-blockquote, q {
-    quotes:none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content:'';
-    content:none;
-}
-a {
-    margin:0;
-    padding:0;
-    border:0;
-    font-size:100%;
-    vertical-align:baseline;
-    background:transparent;
-}
-ins {
-    background-color:#ff9;
-    color:#000;
-    text-decoration:none;
-}
-mark {
-    background-color:#ff9;
-    color:#000;
-    font-style:italic;
-    font-weight:bold;
-}
-del {
-    text-decoration: line-through;
-}
-abbr[title], dfn[title] {
-    border-bottom:1px dotted #000;
-    cursor:help;
-}
-table {
-    border-collapse:collapse;
-    border-spacing:0;
-}
-hr {
-    display:block;
-    height:1px;
-    border:0;
-    border-top:1px solid #cccccc;
-    margin:1em 0;
-    padding:0;
-}
-input, select {
-    vertical-align:middle;
-}
-/* --- /reset */
-
 /* classes */
 .tinyTip {
     width: 325px;
@@ -110,11 +24,7 @@ input, select {
 }
 /* --- /classes */
 
-/* --- sessões */
-body {
-    width: 570px;
-    margin: 0 auto;
-}
+/* --- aviso */
 noscript {
     display: block;
     width: 450px;
@@ -132,6 +42,15 @@ noscript {
     line-height: 20pt;
     margin: 10pt auto;
 }
+/* -- container */
+#container {
+    display: block;
+    width: 640px;
+    margin: 0 auto;
+}
+/* -- /container /
+
+/* --- sessões */
 header {
     margin-bottom:5px;
     margin-top: 10px;
@@ -150,8 +69,7 @@ nav ul li {
 }
 nav b {
     text-transform: capitalize;
-    display: block;
-    float: right;
+    display: inline-block;
 }
 nav .ui-button {
     margin-right: 4pt;
@@ -225,18 +143,18 @@ nav .ui-button {
 /* --- /cadastro */
 
 /* --- relatório */
-#datepicker {
+.widget-calendario {
     display: block;
     position: relative;
     left: 335px;
     top: 7px;
 }
-.graph {
+.widget-grafico {
     display: block;
     position: relative;
     left: 332px;
     top: 15px;
-    margin-bottom: 10px;
+
 }
 .widget-relatorio {
     display: block;

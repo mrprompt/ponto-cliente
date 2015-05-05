@@ -12,7 +12,7 @@
  * @filesource Ponto.js
  * @copyright  Copyright 2011, Thiago Paes
  * @link       http://github.com/mrprompt/ponto/
- * @version    $Revision: 0.1 $
+ * @version    $Revision: 0.2 $
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 var Ponto = {
@@ -24,28 +24,47 @@ var Ponto = {
     init: function() {
         $('<section/>')
         .attr('id', 'Ponto')
-        .appendTo($('body'));
+        .appendTo($('#container'));
 
         if (sessionStorage.getItem('id') !== null) {
-            $('<header/>')
-            .append($('<nav/>')
-                .append($('<ul/>')
-                    .append($('<li/>')
-                        .append($('<a/>')
-                            .html('Bater Ponto')
-                            .attr('href', 'javascript:;')
-                            .button()
-                            .click(function() {
-                                Ponto.ponto();
-                            })))
-                    .append($('<li/>')
-                        .append($('<a/>')
-                            .html('Preferências')
-                            .attr('href', 'javascript:;')
-                            .button()
-                            .click(function() {
-                                Ponto.preferencias();
-                            })))
+            var header = $('<header/>');
+            var menu = $('<ul/>');
+
+            header
+                .append($('<nav/>')
+                    .append(
+                        menu
+                        .append($('<li/>')
+                            .append($('<a/>')
+                                .html('+')
+                                .attr('href', 'javascript:;')
+                                .button()
+                                .click(function() {
+                                    Ponto.ponto();
+                                })))
+                        .append($('<li/>')
+                            .append($('<a/>')
+                                .html('Preferências')
+                                .attr('href', 'javascript:;')
+                                .button()
+                                .click(function() {
+                                    Ponto.preferencias();
+                                })))
+                        .append($('<li/>')
+                            .append($('<a/>')
+                                .html('Sair')
+                                .attr('href', 'javascript:;')
+                                .button()
+                                .click(function() {
+                                    Ponto.logout();
+                                }))))
+                    .append($('<span/>')
+                            .html('Logado como')
+                            .append($('<b/>').html(sessionStorage.getItem('nome')))))
+                .insertBefore($('#Ponto'));
+
+            if (sessionStorage.getItem('owner') == 'null') {
+                menu
                     .append($('<li/>')
                         .append($('<a/>')
                             .html('Usuários')
@@ -54,18 +73,7 @@ var Ponto = {
                             .click(function() {
                                 Ponto.usuarios();
                             })))
-                    .append($('<li/>')
-                        .append($('<a/>')
-                            .html('Sair')
-                            .attr('href', 'javascript:;')
-                            .button()
-                            .click(function() {
-                                Ponto.logout();
-                            }))))
-                .append($('<b/>')
-                    .html(sessionStorage.getItem('nome')))
-                )
-            .insertBefore($('#Ponto'));
+            }
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
@@ -286,7 +294,7 @@ var Ponto = {
      */
     _criaRelatorio: function(strData) {
         $('.widget-relatorio').remove();
-        $('.graph').remove();
+        $('.widget-grafico').remove();
 
         $.ajax({
             type: 'POST',
@@ -400,7 +408,7 @@ var Ponto = {
                         axis_labels : ['Sim', 'Não'],
                         title       : 'Pontualidade'
                     }))
-                    .addClass('graph')
+                    .addClass('widget-grafico')
                     .appendTo($('#Ponto'));
 
                     // gero um gráfico por dia de barras com as horas trabalhadas por dia
@@ -417,7 +425,7 @@ var Ponto = {
                         bar_spacing : 1,
                         title       : 'Horas trabalhadas por dia'
                     }))
-                    .addClass('graph')
+                    .addClass('widget-grafico')
                     .appendTo($('#Ponto'));
 
                     // gero um gráfico informando se supriu as horas mensais
@@ -463,7 +471,7 @@ var Ponto = {
                         bar_spacing : 10,
                         grid        : false
                     }))
-                    .addClass('graph')
+                    .addClass('widget-grafico')
                     .appendTo($('#Ponto'));
                 } else {
                     // sem relatório
@@ -1058,7 +1066,7 @@ var Ponto = {
 
         // monto um calendário para poder filtrar o relatório
         $('<div/>')
-        .attr('id', 'datepicker')
+        .attr('class', 'widget-calendario')
         .appendTo($('#Ponto'))
         .datepicker({
             monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
