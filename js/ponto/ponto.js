@@ -15,7 +15,7 @@
  * @version    $Revision: 0.1 $
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
-Ponto = {
+var Ponto = {
     apiServer: 'https://ponto-api-mrprompt.c9.io',
 
     /**
