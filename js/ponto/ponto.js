@@ -548,6 +548,9 @@ var Ponto = {
 
                     $(this).dialog('close');
 
+                    $("#cadastro-form").remove();
+                    $(".widget-usuarios").remove();
+
                     Ponto.init();
                 },
                 "Fechar": function() {
@@ -797,12 +800,16 @@ var Ponto = {
 
                         sessionStorage.removeItem('inicial');
 
+                        $(this).dialog('close');
+                        $("#troca-form").remove();
+
                         Ponto.init();
                     },
                     "Logout": function() {
                         sessionStorage.clear();
 
                         $(this).dialog('close');
+                        $("#troca-form").remove();
 
                         Ponto.init();
                     },
@@ -1039,8 +1046,11 @@ var Ponto = {
                                     Ponto._criaSessao(retorno);
 
                                     $(this).dialog('close');
+                                    $("#cadastro-form").remove();
+                                    $("#login-form").remove();
 
                                     Ponto.init();
+                                    Ponto._showMsg('Bem vindo :)');
                                 } else {
                                     Ponto._showErro(retorno);
                                 }
@@ -1185,9 +1195,9 @@ var Ponto = {
                 } else {
                     // sem sub usuários
                     $('<div/>')
-                    .addClass('noResult')
-                    .html('Você não possui usuários cadastrados')
-                    .appendTo($('.widget-usuarios'));
+                        .addClass('noResult')
+                        .html('Você não possui usuários cadastrados')
+                        .appendTo($('.widget-usuarios'));
                 }
 
                 $('.widget-usuarios').dialog({
