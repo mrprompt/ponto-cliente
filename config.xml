@@ -36,7 +36,7 @@
   <gap:plugin name="org.apache.cordova.network-information"/>
   <gap:plugin name="org.apache.cordova.splashscreen"/>
   <gap:plugin name="org.apache.cordova.vibration"/>
-  <icon src="img/icn_relogio.gif"/>
+  <icon src="img/logo.png"/>
   <access origin="*"/>
   <plugin name="cordova-plugin-whitelist" version="1"/>
   <allow-intent href="http://*/*"/>
