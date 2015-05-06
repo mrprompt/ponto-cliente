@@ -7,9 +7,6 @@ Este projeto foi concebido para atender minhas necessidades pessoais,
 além de ter como segundo objetivo, brincar com elementos dinâmicamente
 gerados pelo jQuery + jQuery UI.
 
-A base do projeto é HTML5, Session Storage, Javascript e Google Charts API.
-Com isso, deu de brincar bastante.
-
 Pacotes Mobile (instável) [aqui](https://build.phonegap.com/apps/1440553/share)
 
 Características
