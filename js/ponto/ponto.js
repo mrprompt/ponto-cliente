@@ -52,14 +52,6 @@ var Ponto = {
                                 .button()
                                 .click(function() {
                                     Ponto.preferencias();
-                                })))
-                        .append($('<li/>')
-                            .append($('<a/>')
-                                .html('Sair')
-                                .attr('href', 'javascript:;')
-                                .button()
-                                .click(function() {
-                                    Ponto.logout();
                                 }))))
                     .append($('<span/>')
                         .html('Logado como: ')
@@ -78,6 +70,15 @@ var Ponto = {
                                 Ponto.usuarios();
                             })))
             }
+
+            menu.append($('<li/>')
+                .append($('<a/>')
+                    .html('Sair')
+                    .attr('href', 'javascript:;')
+                    .button()
+                    .click(function() {
+                        Ponto.logout();
+                    })));
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
