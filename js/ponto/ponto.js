@@ -26,7 +26,7 @@ var Ponto = {
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
 
-        if (sessionStorage.getItem('id') !== null) {
+        if (localStorage.getItem('id') !== null) {
             $('#login-form').dialog('close');
             $('#login-form').remove();
 
@@ -56,10 +56,10 @@ var Ponto = {
                     .append($('<span/>')
                         .html('Logado como: ')
                         .append($('<br/>'))
-                        .append($('<b/>').html(sessionStorage.getItem('nome')))))
+                        .append($('<b/>').html(localStorage.getItem('nome')))))
                 .insertBefore($('#Ponto'));
 
-            if (sessionStorage.getItem('owner') == 'null') {
+            if (localStorage.getItem('owner') == 'null') {
                 menu
                     .append($('<li/>')
                         .append($('<a/>')
@@ -82,7 +82,7 @@ var Ponto = {
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
-            var arrDiasTrabalho = sessionStorage.getItem('dias_trabalho').split(',');
+            var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
             var objData = new Date();
 
             if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) < 0) {
@@ -310,7 +310,7 @@ var Ponto = {
             type: 'POST',
             url: Ponto.apiServer + '/relatorio.php',
             data: {
-                usuario: sessionStorage.getItem('id'),
+                usuario: localStorage.getItem('id'),
                 data: strData
             },
             success: function(retorno) {
@@ -367,7 +367,7 @@ var Ponto = {
                     });
 
                     // verificando se cumpriu o expediente
-                    var horas_dia = parseInt(sessionStorage.getItem('horas_dia'), 10);
+                    var horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
                     var intExpediente = horas_dia * 60;
                     var intExpedienteCheio = 0;
                     var intExpedienteIncompleto = 0;
@@ -445,7 +445,7 @@ var Ponto = {
 
                     // gero um gráfico informando se supriu as horas mensais
                     // contabilizando as horas trabalhadas
-                    var arrDiasTrabalho = sessionStorage.getItem('dias_trabalho').split(',');
+                    var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
                     var intDiasMes = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
                     var intDiasMeta = 0;
 
@@ -513,7 +513,7 @@ var Ponto = {
             type: 'POST',
             url: Ponto.apiServer + '/userdel.php',
             data: {
-                usuario: sessionStorage.getItem('id'),
+                usuario: localStorage.getItem('id'),
                 usuarios: lista.join('|')
             },
             success: function(retorno) {
@@ -547,15 +547,15 @@ var Ponto = {
             buttons: {
                 "Continuar": function() {
                     // salvo o estado do usuário inicial
-                    if (sessionStorage.getItem('inicial') == null) {
-                        sessionStorage.setItem('inicial', JSON.stringify({
-                            'id': sessionStorage.getItem('id'),
-                            'nome': sessionStorage.getItem('nome'),
-                            'login': sessionStorage.getItem('login'),
-                            'email': sessionStorage.getItem('email'),
-                            'horas_dia': sessionStorage.getItem('horas_dia'),
-                            'horas_almoco': sessionStorage.getItem('horas_almoco'),
-                            'owner': sessionStorage.getItem('owner')
+                    if (localStorage.getItem('inicial') == null) {
+                        localStorage.setItem('inicial', JSON.stringify({
+                            'id': localStorage.getItem('id'),
+                            'nome': localStorage.getItem('nome'),
+                            'login': localStorage.getItem('login'),
+                            'email': localStorage.getItem('email'),
+                            'horas_dia': localStorage.getItem('horas_dia'),
+                            'horas_almoco': localStorage.getItem('horas_almoco'),
+                            'owner': localStorage.getItem('owner')
                         }));
                     }
 
@@ -627,11 +627,11 @@ var Ponto = {
     },
 
     /**
-     * Crio a sessão do usuário no sessionStorage do navegador (HTML5)
+     * Crio a sessão do usuário no localStorage do navegador (HTML5)
      */
     _criaSessao: function(dados) {
         for (var indice in dados) {
-            sessionStorage.setItem(indice, dados[indice]);
+            localStorage.setItem(indice, dados[indice]);
         }
     },
 
@@ -688,7 +688,7 @@ var Ponto = {
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
-        $('#cadastro-form form #owner').val(sessionStorage.id);
+        $('#cadastro-form form #owner').val(localStorage.id);
 
         $("#cadastro-form").dialog({
             title: 'Cadastro',
@@ -799,8 +799,8 @@ var Ponto = {
         var mensagem = '';
 
         // retomar sessão original
-        if (sessionStorage.getItem('inicial') !== null) {
-            var original = JSON.parse(sessionStorage.getItem('inicial'));
+        if (localStorage.getItem('inicial') !== null) {
+            var original = JSON.parse(localStorage.getItem('inicial'));
             mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
@@ -817,7 +817,7 @@ var Ponto = {
                             // salvo o estado do usuário inicial
                             Ponto._criaSessao(original);
 
-                            sessionStorage.removeItem('inicial');
+                            localStorage.removeItem('inicial');
 
                             $(this).dialog('close');
                             $("#troca-form").remove();
@@ -825,7 +825,7 @@ var Ponto = {
                             Ponto.init();
                         },
                         "Logout": function() {
-                            sessionStorage.clear();
+                            localStorage.clear();
 
                             $(this).dialog('close');
                             $("#troca-form").remove();
@@ -855,7 +855,7 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Continuar": function() {
-                            sessionStorage.clear();
+                            localStorage.clear();
 
                             $(this).dialog('close');
 
@@ -876,7 +876,7 @@ var Ponto = {
      * Registro de ponto
      */
     ponto: function() {
-        var arrDiasTrabalho = sessionStorage.getItem('dias_trabalho').split(',');
+        var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
         var objData = new Date();
 
         if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
@@ -898,7 +898,7 @@ var Ponto = {
                                 url: Ponto.apiServer + '/ponto.php',
                                 data: {
                                     observacao: $("#ponto-form #observacao").val(),
-                                    usuario: sessionStorage.getItem('id'),
+                                    usuario: localStorage.getItem('id'),
                                     tipo: $("#ponto-form input[@name='tipo']:checked").val()
                                 },
                                 success: function(retorno) {
@@ -959,13 +959,13 @@ var Ponto = {
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
         // preencho o formulário
-        $('#cadastro-form form #nome').val(sessionStorage.getItem('nome'));
-        $('#cadastro-form form #email').val(sessionStorage.getItem('email'));
-        $('#cadastro-form form #usuario').val(sessionStorage.getItem('login')).attr('readonly', 'readonly');
-        $('#cadastro-form form #id').val(sessionStorage.getItem('id'));
-        $('#cadastro-form form #owner').val(sessionStorage.getItem('owner'));
-        $('#cadastro-form form #horas_dia').val(sessionStorage.getItem('horas_dia'));
-        $('#cadastro-form form #horas_almoco').val(sessionStorage.getItem('horas_almoco'));
+        $('#cadastro-form form #nome').val(localStorage.getItem('nome'));
+        $('#cadastro-form form #email').val(localStorage.getItem('email'));
+        $('#cadastro-form form #usuario').val(localStorage.getItem('login')).attr('readonly', 'readonly');
+        $('#cadastro-form form #id').val(localStorage.getItem('id'));
+        $('#cadastro-form form #owner').val(localStorage.getItem('owner'));
+        $('#cadastro-form form #horas_dia').val(localStorage.getItem('horas_dia'));
+        $('#cadastro-form form #horas_almoco').val(localStorage.getItem('horas_almoco'));
 
         $('#cadastro-form form input#usuario').hide();
         $('#cadastro-form form input#usuario').parent().hide();
@@ -974,7 +974,7 @@ var Ponto = {
         $('#cadastro-form form input[type=password]').parent().hide();
 
         // marco os dias da semana que são trabalhados
-        var $dias = sessionStorage.getItem('dias_trabalho').split(',');
+        var $dias = localStorage.getItem('dias_trabalho').split(',');
 
         $('#cadastro-form form input[type=checkbox]')
             .attr('checked', false);
@@ -1162,7 +1162,7 @@ var Ponto = {
             type: 'POST',
             url: Ponto.apiServer + '/usuarios.php',
             data: {
-                usuario: sessionStorage.getItem('id')
+                usuario: localStorage.getItem('id')
             },
             success: function(retorno) {
                 if (retorno.length !== 0) {
