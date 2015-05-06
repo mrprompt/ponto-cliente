@@ -23,7 +23,7 @@ Requerimentos
 -------------
 
 - Conexão a internet (para gerar os gráficos)
-- Navegador compatível com HTML5 (principalmente Session Storage)
+- Navegador compatível com HTML5
 
 Atenção
 -------
