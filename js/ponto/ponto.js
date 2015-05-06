@@ -421,7 +421,7 @@ var Ponto = {
                             type: 'p3',
                             size: '250x150',
                             axis_labels: ['Sim', 'Não'],
-                            title: 'Pontualidade'
+                            title: 'Assiduidade'
                         }))
                         .addClass('widget-grafico')
                         .appendTo($('#Ponto'));
@@ -438,7 +438,7 @@ var Ponto = {
                             colors: ['41599b'],
                             bar_width: 5,
                             bar_spacing: 1,
-                            title: 'Horas trabalhadas por dia'
+                            title: 'Horas/Dia'
                         }))
                         .addClass('widget-grafico')
                         .appendTo($('#Ponto'));
@@ -497,7 +497,7 @@ var Ponto = {
                         .append($('<td/>')
                             .attr('colspan', '4')
                             .addClass('noResult')
-                            .html('Sem relatório para este período'))
+                            .html('Sem dados'))
                         .appendTo($('#tbRelatorio tbody'));
                 }
             },
