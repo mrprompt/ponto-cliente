@@ -275,26 +275,7 @@ var Ponto = {
                 .append($('<textarea/>')
                     .attr('name', 'observacao')
                     .attr('id', 'observacao')
-                    .addClass('text ui-widget-content ui-corner-all')))
-            .append($('<label/>')
-                .attr('for', 'tipoEntrada')
-                .html('Entrada')
-                .addClass('radioContainer')
-                .append($('<input/>')
-                    .attr('type', 'radio')
-                    .attr('name', 'tipo')
-                    .attr('id', 'tipoEntrada')
-                    .attr('checked', 'checked')
-                    .val('entrada')))
-            .append($('<label/>')
-                .attr('for', 'tipoSaida')
-                .html('Saída')
-                .addClass('radioContainer')
-                .append($('<input/>')
-                    .attr('type', 'radio')
-                    .attr('name', 'tipo')
-                    .attr('id', 'tipoSaida')
-                    .val('saida')));
+                    .addClass('text ui-widget-content ui-corner-all')));
 
         return $('<form/>').append($fieldset);
     },
