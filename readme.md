@@ -7,8 +7,6 @@ Este projeto foi concebido para atender minhas necessidades pessoais,
 além de ter como segundo objetivo, brincar com elementos dinâmicamente
 gerados pelo jQuery + jQuery UI.
 
-Pacotes Mobile (instável) [aqui](https://build.phonegap.com/apps/1440553/share)
-
 Características
 ---------------
 
