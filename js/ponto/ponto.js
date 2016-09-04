@@ -16,7 +16,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 var Ponto = {
-    apiServer: 'https://ponto-api-mrprompt.c9.io',
+    apiServer: 'https://ponto-mrprompt.rhcloud.com',
 
     /**
      * Cria o ambiente
