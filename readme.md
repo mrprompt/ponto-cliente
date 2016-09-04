@@ -7,6 +7,8 @@ Este projeto foi concebido para atender minhas necessidades pessoais,
 além de ter como segundo objetivo, brincar com elementos dinâmicamente
 gerados pelo jQuery + jQuery UI.
 
+O projeto utiliza uma api simples que você pode consultar [aqui](https://github.com/mrprompt/ponto-api).
+
 Características
 ---------------
 
