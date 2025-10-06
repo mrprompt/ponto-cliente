@@ -12,11 +12,11 @@
  * @filesource Ponto.js
  * @copyright  Copyright 2011, Thiago Paes
  * @link       http://github.com/mrprompt/ponto/
- * @version    $Revision: 0.2 $
+ * @version    $Revision: 0.3 $
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 var Ponto = {
-    apiServer: 'https://ponto-mrprompt.rhcloud.com',
+    apiServer: 'http://localhost:8888',
 
     /**
      * Cria o ambiente
@@ -281,7 +281,7 @@ var Ponto = {
     },
 
     /**
-     * Cria a tabela com o resultado das horas trabalhadas
+     * Cria a tabela com o resultado das horas trabalhadas e gráficos usando Chart.js
      */
     _criaRelatorio: function(strData) {
         $('.widget-relatorio').remove();
@@ -347,13 +347,12 @@ var Ponto = {
                         }
                     });
 
-                    // verificando se cumpriu o expediente
                     var horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
                     var intExpediente = horas_dia * 60;
                     var intExpedienteCheio = 0;
                     var intExpedienteIncompleto = 0;
-                    var arrExpedienteMinutos = new Array();
-                    var arrExpedienteHoras = new Array();
+                    var arrExpedienteMinutos = [];
+                    var arrExpedienteHoras = [];
                     var intHorasTotal = 0;
 
                     $('#tbRelatorio tbody tr').each(function() {
@@ -364,122 +363,121 @@ var Ponto = {
                         var intHora = parseInt(strHoras.substr(0, 2), 10);
                         var intMinuto = parseInt(strHoras.substr(3, 2), 10);
 
-                        // crio uma classe para todas as linhas de mesmo dia
                         $linha.addClass('dia' + intDia);
 
                         if (arrExpedienteMinutos[intDia]) {
-                            arrExpedienteMinutos[intDia] = arrExpedienteMinutos[intDia] + ((intHora * 60) + intMinuto);
-                        }
-                        else {
-                            arrExpedienteMinutos[intDia] = ((intHora * 60) + intMinuto);
+                            arrExpedienteMinutos[intDia] += (intHora * 60) + intMinuto;
+                        } else {
+                            arrExpedienteMinutos[intDia] = (intHora * 60) + intMinuto;
                         }
 
                         arrExpedienteHoras[intDia] = arrExpedienteMinutos[intDia] / 60;
                     });
 
-                    // marco todos os dias em que as horas do expediente não foram cumpridas
-                    // e contabilizo para gerar o gráfico
                     for (var i in arrExpedienteMinutos) {
                         if (arrExpedienteMinutos[i] < intExpediente) {
                             $('#tbRelatorio tbody tr.dia' + i).addClass('expedienteMenor');
-
                             intExpedienteIncompleto++;
-                        }
-                        else {
+                        } else {
                             intExpedienteCheio++;
                         }
                     }
 
-                    // gero um gráfico de pizza com a média de cumprimento do expediente
-                    var objGraphMedia = new jGCharts.Api();
+                    // Criação dos containers para gráficos Chart.js
+                    $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-assiduidade').attr('width', 250).attr('height', 150)).appendTo($('#Ponto'));
+                    $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-horas-dia').attr('width', 250).attr('height', 150)).appendTo($('#Ponto'));
+                    $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-meta-horas').attr('width', 250).attr('height', 120)).appendTo($('#Ponto'));
 
-                    $('<img>')
-                        .attr('src', objGraphMedia.make({
-                            data: [
-                                [intExpedienteCheio],
-                                [intExpedienteIncompleto]
-                            ],
-                            type: 'p3',
-                            size: '250x150',
-                            axis_labels: ['Sim', 'Não'],
-                            title: 'Assiduidade'
-                        }))
-                        .addClass('widget-grafico')
-                        .appendTo($('#Ponto'));
+                    // Gráfico de pizza - Assiduidade
+                    const ctxAssiduidade = document.getElementById('chart-assiduidade').getContext('2d');
+                    new Chart(ctxAssiduidade, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Sim', 'Não'],
+                            datasets: [{
+                                label: 'Assiduidade',
+                                data: [intExpedienteCheio, intExpedienteIncompleto],
+                                backgroundColor: ['#4CAF50', '#F44336']
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Assiduidade' } }
+                        }
+                    });
 
-                    // gero um gráfico por dia de barras com as horas trabalhadas por dia
-                    var objGraphExpediente = new jGCharts.Api();
+                    // Gráfico barras - Horas por dia
+                    const ctxHorasDia = document.getElementById('chart-horas-dia').getContext('2d');
+                    new Chart(ctxHorasDia, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(arrExpedienteHoras).map(d => 'Dia ' + d),
+                            datasets: [{
+                                label: 'Horas/Dia',
+                                data: Object.values(arrExpedienteHoras),
+                                backgroundColor: '#41599b'
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            scales: {
+                                y: { beginAtZero: true }
+                            },
+                            plugins: { title: { display: true, text: 'Horas/Dia' } }
+                        }
+                    });
 
-                    $('<img>')
-                        .attr('src', objGraphExpediente.make({
-                            data: [arrExpedienteHoras],
-                            axis_labels: ['Dias Trabalhados'],
-                            size: '250x150',
-                            type: 'bvg',
-                            colors: ['41599b'],
-                            bar_width: 5,
-                            bar_spacing: 1,
-                            title: 'Horas/Dia'
-                        }))
-                        .addClass('widget-grafico')
-                        .appendTo($('#Ponto'));
-
-                    // gero um gráfico informando se supriu as horas mensais
-                    // contabilizando as horas trabalhadas
+                    // Gráfico barras - Meta mensal de horas
                     var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
                     var intDiasMes = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
                     var intDiasMeta = 0;
 
-                    // aponto o objeto da data para o primeiro dia do mês informado
                     var arrData = strData.split('-');
-                    var objData = new Date(arrData[0], arrData[1], arrData[2]);
-                    objData.setMonth(arrData[1] - 1);
-                    objData.setDate(1);
+                    var objData = new Date(arrData[0], arrData[1] - 1, 1);
 
-                    // contando os dias da semana que o usuário trabalha
-                    for (i = 1; i <= intDiasMes; i++) {
-                        var bUtil = $.inArray(objData.getDay().toString(), arrDiasTrabalho);
-
-                        if (bUtil >= 0) {
+                    for (var i = 1; i <= intDiasMes; i++) {
+                        if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
                             intDiasMeta++;
                         }
-
                         objData.setDate(objData.getDate() + 1);
                     }
 
-                    for (i in arrExpedienteHoras) {
+                    for (var i in arrExpedienteHoras) {
                         intHorasTotal += parseInt(arrExpedienteHoras[i]);
                     }
 
-                    var objGraphMeta = new jGCharts.Api();
-                    var intHorasMes = horas_dia * intDiasMeta;
-
-                    $('<img>')
-                        .attr('src', objGraphMeta.make({
-                            data: [
-                                [intHorasTotal, intHorasMes]
-                            ],
-                            type: 'bhg',
-                            size: '250x120',
-                            axis_labels: [' '],
-                            legend: ['Cumpridas (' + intHorasTotal + ')', 'Mensal (' + intHorasMes + ')'],
-                            title: 'Meta de horas do mês',
-                            colors: ['DDD6F5', '5131C9'],
-                            bar_width: 30,
-                            bar_spacing: 10,
-                            grid: false
-                        }))
-                        .addClass('widget-grafico')
-                        .appendTo($('#Ponto'));
-                }
-                else {
-                    // sem relatório
+                    const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
+                    const intHorasMes = horas_dia * intDiasMeta;
+                    new Chart(ctxMetaHoras, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Meta Mensal'],
+                            datasets: [
+                                {
+                                    label: 'Cumpridas (' + intHorasTotal + ')',
+                                    data: [intHorasTotal],
+                                    backgroundColor: '#DDD6F5'
+                                },
+                                {
+                                    label: 'Mensal (' + intHorasMes + ')',
+                                    data: [intHorasMes],
+                                    backgroundColor: '#5131C9'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: false,
+                            scales: { y: { beginAtZero: true } },
+                            plugins: { title: { display: true, text: 'Meta de horas do mês' } },
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.5
+                        }
+                    });
+                } else {
                     $('<tr/>')
-                        .append($('<td/>')
-                            .attr('colspan', '4')
-                            .addClass('noResult')
-                            .html('Sem dados'))
-                        .appendTo($('#tbRelatorio tbody'));
+                        .append(
+                            $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados')
+                        ).appendTo($('#tbRelatorio tbody'));
                 }
             },
             dataType: 'json'
