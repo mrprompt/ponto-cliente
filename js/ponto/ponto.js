@@ -21,7 +21,13 @@ var Ponto = {
     /**
      * Cria o ambiente
      */
-    init: function() {
+    init: function(apiServer) {
+        if (apiServer) {
+            Ponto.apiServer = apiServer;
+
+            console.log('API Server set to: ' + Ponto.apiServer);
+        }
+
         $('body > #container').empty();
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
