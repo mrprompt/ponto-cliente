@@ -44,6 +44,17 @@ function generateUniqueId(key) {
     return currentId.toString();
 }
 
+// Function to hash passwords using SHA-256
+function hashPassword(password) {
+    // Ensure sha256 is available globally from the CDN script
+    if (typeof sha256 === 'function') {
+        return sha256(password);
+    } else {
+        console.error('SHA-256 library not loaded. Passwords will not be hashed.');
+        return password; // Fallback to plain text if hashing library is not available
+    }
+}
+
 // Initial data setup if localStorage is empty
 function setupInitialData() {
     if (!localStorage.getItem(LS_KEYS.USERS)) {
@@ -52,7 +63,7 @@ function setupInitialData() {
             nome: 'Admin',
             login: 'admin',
             email: 'admin@example.com',
-            senha: 'admin', // WARNING: In a real app, never store passwords like this.
+            senha: hashPassword('admin'), // Hash initial admin password
             horas_dia: '8',
             horas_almoco: '1',
             dias_trabalho: '1,2,3,4,5',
@@ -799,7 +810,7 @@ var Ponto = {
                             nome: $('#cadastro-form form #nome').val(),
                             login: $('#cadastro-form form #usuario').val(),
                             email: $('#cadastro-form form #email').val(),
-                            senha: $('#cadastro-form form #senha').val(), // WARNING: In a real app, never store passwords like this.
+                            senha: hashPassword($('#cadastro-form form #senha').val()), // Hash the password
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
                             dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),
@@ -862,8 +873,9 @@ var Ponto = {
                         const users = getFromLS(LS_KEYS.USERS);
                         const username = $('#login-form form #usuario').val();
                         const password = $('#login-form form #senha').val();
+                        const hashedPassword = hashPassword(password); // Hash the input password
 
-                        const foundUser = users.find(user => user.login === username && user.senha === password);
+                        const foundUser = users.find(user => user.login === username && user.senha === hashedPassword); // Compare with hashed password
 
                         if (foundUser) {
                             Ponto._criaSessao(foundUser);
@@ -925,9 +937,7 @@ var Ponto = {
                             Ponto.init();
                         },
                         "Logout": function() {
-                            // --- START LOCALSTORAGE FIX ---
                             Ponto._clearSessionData();
-                            // --- END LOCALSTORAGE FIX ---
 
                             $(this).dialog('close');
                             $("#troca-form").remove();
@@ -957,9 +967,7 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Continuar": function() {
-                            // --- START LOCALSTORAGE FIX ---
                             Ponto._clearSessionData();
-                            // --- END LOCALSTORAGE FIX ---
 
                             $(this).dialog('close');
 
@@ -1129,7 +1137,7 @@ var Ponto = {
 
                             // Only update password if visible and provided
                             if ($('#cadastro-form form input[type=password]').is(':visible') && $('#cadastro-form form #senha').val().length > 0) {
-                                updatedUserData.senha = $('#cadastro-form form #senha').val();
+                                updatedUserData.senha = hashPassword($('#cadastro-form form #senha').val()); // Hash the new password
                             }
 
                             allUsers[userIndex] = updatedUserData;
@@ -1192,7 +1200,7 @@ var Ponto = {
                             nome: $('#cadastro-form form #nome').val(),
                             login: $('#cadastro-form form #usuario').val(),
                             email: $('#cadastro-form form #email').val(),
-                            senha: $('#cadastro-form form #senha').val(), // WARNING: In a real app, never store passwords like this.
+                            senha: hashPassword($('#cadastro-form form #senha').val()), // Hash the password
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
                             dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),

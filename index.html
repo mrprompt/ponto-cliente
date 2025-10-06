@@ -21,12 +21,15 @@
         <link rel="stylesheet" type="text/css" href="js/jquery-ui/css/redmond/jquery-ui-1.8.13.custom.css" media="screen" />
         <script src="js/headjs/head.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Adicionando a biblioteca js-sha256 para hashing de senhas -->
+        <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/build/sha256.min.js"></script>
         <script>
             head.js('js/jquery-ui/js/jquery-1.5.1.min.js',
                     'js/jquery-ui/js/jquery-ui-1.8.13.custom.min.js',
                     'js/tiny.tips/jquery.tinyTips.js',
                     'js/jquery-maskedinput/jquery.maskedinput-1.2.2.min.js',
-                    'js/ponto/ponto.min.js?v=1.3', function() {
+                    // Carregando a versão não minificada do ponto.js para aplicar as mudanças
+                    'js/ponto/ponto.js?v=1.3', function() {
                 Ponto.init('http://localhost:8888');
             });
         </script>
