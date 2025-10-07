@@ -417,7 +417,7 @@ var Ponto = {
                         .html(this.time))
                     .append($('<td/>')
                         .addClass('tipo')
-                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída'))
+                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída')))
                     .append($('<td/>')
                         .addClass('observacao')
                         .html(this.observacao || '')); // Display empty string if no observation
@@ -1003,10 +1003,19 @@ var Ponto = {
                             const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
                             const timeString = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
 
-                            // Determine if it's an entry or exit
+                            // Determine if it's an entry or exit based on the last punch
                             const todayRecords = allRecords.filter(r => r.usuarioId === currentUserId && r.data === dateString);
-                            const isEntry = todayRecords.length === 0 || todayRecords.every(r => r.tipo === 'saida'); // If no records or all are exits, next is entry
-                            const type = isEntry ? 'entrada' : 'saida';
+                            
+                            // Sort records by time to find the last punch chronologically
+                            todayRecords.sort((a, b) => a.time.localeCompare(b.time));
+
+                            let type;
+                            if (todayRecords.length === 0) {
+                                type = 'entrada'; // First punch of the day
+                            } else {
+                                const lastPunch = todayRecords[todayRecords.length - 1];
+                                type = lastPunch.tipo === 'entrada' ? 'saida' : 'entrada'; // Alternate type
+                            }
 
                             const newRecord = {
                                 id: newRecordId,
@@ -1048,15 +1057,6 @@ var Ponto = {
                         $("#ponto-form").remove();
                     }
                 });
-
-            // checando o botão correto (this part of the original code seems to be missing the radio buttons for type)
-            // For now, the logic above determines entry/exit automatically.
-            // If radio buttons were present, this would check them.
-            // if ($('#tbRelatorio')[0]) {
-            //     if ($('#tbRelatorio tbody td.saida:first').text() == '') {
-            //         $('#tipoSaida').attr('checked', 'true');
-            //     }
-            // }
         }
         else {
             Ponto._showErro('Pelas suas configurações, não é possível bater o ponto hoje.');
