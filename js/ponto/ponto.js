@@ -794,7 +794,7 @@ var Ponto = {
 
         $("#cadastro-form").dialog({
             title: 'Cadastro',
-            width: 250,
+            width: 300,
             modal: true,
             resizable: false,
             buttons: {
@@ -859,7 +859,7 @@ var Ponto = {
 
         $("#login-form").dialog({
             title: 'Efetuar login',
-            width: 250,
+            width: 260,
             modal: true,
             resizable: false,
             buttons: {
@@ -1112,7 +1112,7 @@ var Ponto = {
 
         $("#cadastro-form").dialog({
             title: 'Preferências',
-            width: 320,
+            width: 340,
             modal: true,
             resizable: false,
             buttons: {
@@ -1184,7 +1184,7 @@ var Ponto = {
 
         $("#cadastro-form").dialog({
             title: 'Cadastro',
-            width: 250,
+            width: 280,
             modal: true,
             resizable: false,
             buttons: {
@@ -1374,7 +1374,7 @@ var Ponto = {
 
         $('.widget-usuarios').dialog({
             title: 'Usuários',
-            width: 600,
+            width: 640,
             modal: true,
             resizable: false,
             buttons: {

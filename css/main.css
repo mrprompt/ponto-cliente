@@ -79,27 +79,34 @@ nav .ui-button {
 /* --- login */
 #login-form label {
     display: block;
+    margin-bottom: 5px;
+    font-size: 110%;
 }
 #login-form input[type="text"],
 #login-form input[type="password"] {
     width: 160px;
+    padding: 5px;
 }
 #login-form input[type="text"] {
     margin-left: 10px;
 }
 #login-form input[type="password"] {
-    margin-left: 20px;
+    margin-left: 17px;
 }
 /* --- /login */
 
 /* --- cadastro */
 #cadastro-form label {
     display: block;
-    vertical-align: bottom;
+    margin-bottom: 5px;
+    font-size: 110%;
+}
+#cadastro-form input {
+    padding: 5px;
 }
 #cadastro-form input[type="text"],
 #cadastro-form input[type="password"] {
-    width: 160px;
+    width: 180px;
     vertical-align: bottom;
 }
 #cadastro-form input#nome {
@@ -111,11 +118,9 @@ nav .ui-button {
 #cadastro-form input#email {
     margin-left: 15px;
 }
-#cadastro-form input#senha {
-    margin-left: 20px;
-}
+#cadastro-form input#senha,
 #cadastro-form input#senha_confirmacao {
-    margin-left: 18px;
+    margin-left: 15px;
 }
 #cadastro-form input#horas_dia {
     width: 25px;
@@ -124,12 +129,13 @@ nav .ui-button {
 }
 #cadastro-form input#horas_almoco {
     width: 25px;
-    margin-left: 39px;
+    margin-left: 42px;
     text-align: center;
 }
 #cadastro-form fieldset fieldset {
     border: 1px solid #DDD;
-    margin-top: 4px;
+    margin-top: 10px;
+    text-align: center;
 }
 #cadastro-form fieldset fieldset label {
     display: inline-block;
