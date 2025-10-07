@@ -1005,7 +1005,7 @@ var Ponto = {
 
                             // Determine if it's an entry or exit
                             const todayRecords = allRecords.filter(r => r.usuarioId === currentUserId && r.data === dateString);
-                            const isEntry = todayRecords.length === 0 || todayRecords.every(r => r.tipo === 'saida'); // If no records or all are exits, next is entry
+                            const isEntry = todayRecords.length === 0; // If no records or all are exits, next is entry
                             const type = isEntry ? 'entrada' : 'saida';
 
                             const newRecord = {
