@@ -91,12 +91,6 @@ var Ponto = {
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
 
-        document.addEventListener("DOMContentLoaded", () => {
-            if (!window.matchMedia("(display-mode: browser)").matches) {
-                window.resizeTo(640, 480);
-            }
-        });
-
         if (localStorage.getItem('id') !== null) {
             $('#login-form').dialog('close');
             $('#login-form').remove();

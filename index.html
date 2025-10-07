@@ -18,6 +18,7 @@
 
         <link rel="manifest" href="manifest.json">
         <link rel="shortcut icon" href="img/icn_relogio.gif" />
+        
         <link rel="stylesheet" type="text/css" href="css/reset.min.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="css/main.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="css/responsive.min.css" media="screen" />
@@ -41,5 +42,12 @@
             Você precisa do JavaScript ativado para utilizar esta página.
         </noscript>
         <div id="container"></div>
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!window.matchMedia("(display-mode: browser)").matches) {
+                window.resizeTo(700, 850);
+            }
+        });
+        </script>
     </body>
 </html>

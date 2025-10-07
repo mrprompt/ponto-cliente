@@ -21,8 +21,8 @@
     "lang": "pt-BR",
     "name": "MeuPonto",
     "short_name": "MeuPonto",
-    "start_url": "/",
-    "scope": "rhttps://meuponto.site/",
+    "start_url": "http://meuponto.site",
+    "scope": "/",
     "description": "Ponto Eletrônico é uma aplicação web simples e intuitiva desenvolvida para auxiliar no controle e contabilização das horas trabalhadas. Criado inicialmente para atender necessidades pessoais e como um projeto de estudo, ele demonstra o poder da geração dinâmica de elementos de interface utilizando jQuery e jQuery UI, além de incorporar visualizações de dados com Chart.js.",
     "id": "74aa0e9d-ec5d-5219-8d72-4aa772b88062"
 }
