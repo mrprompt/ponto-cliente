@@ -370,45 +370,66 @@ var Ponto = {
             return record.usuarioId === currentUserId && recordDate === filterDate;
         });
 
-        // Group records by date and calculate total hours for the day
+        // Group records by date and store all punches
         const dailyRecords = {};
         retorno.forEach(record => {
             const date = record.data; // YYYY-MM-DD
             if (!dailyRecords[date]) {
                 dailyRecords[date] = {
-                    entrada: '',
-                    saida: '',
-                    horas: '00:00',
+                    punches: [], // Store all punches for the day
                     obs: []
                 };
             }
-            if (record.tipo === 'entrada') {
-                dailyRecords[date].entrada = record.time;
-            } else if (record.tipo === 'saida') {
-                dailyRecords[date].saida = record.time;
-            }
+            dailyRecords[date].punches.push({ time: record.time, tipo: record.tipo });
             if (record.observacao) {
                 dailyRecords[date].obs.push(record.observacao);
             }
         });
 
-        // Calculate total hours for each day
+        // Process daily records to get first entry, last exit, and total hours
         const processedRetorno = Object.keys(dailyRecords).map(date => {
             const dayRec = dailyRecords[date];
-            let totalHours = '00:00';
-            if (dayRec.entrada && dayRec.saida) {
-                const [h1, m1] = dayRec.entrada.split(':').map(Number);
-                const [h2, m2] = dayRec.saida.split(':').map(Number);
-                const diffMinutes = (h2 * 60 + m2) - (h1 * 60 + m1);
-                const diffHours = Math.floor(diffMinutes / 60);
-                const remainingMinutes = diffMinutes % 60;
-                totalHours = `${String(diffHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`;
+            const punches = dayRec.punches.sort((a, b) => a.time.localeCompare(b.time)); // Sort punches by time
+
+            let firstEntry = '';
+            let lastExit = '';
+            let totalMinutesWorked = 0;
+
+            // Find first entry and last exit
+            for (const punch of punches) {
+                if (punch.tipo === 'entrada' && !firstEntry) {
+                    firstEntry = punch.time;
+                }
+                if (punch.tipo === 'saida') { // Always update lastExit to get the absolute last one
+                    lastExit = punch.time;
+                }
             }
+
+            // Calculate total hours worked by pairing entries and exits
+            let currentEntryTime = null;
+            for (const punch of punches) {
+                if (punch.tipo === 'entrada') {
+                    currentEntryTime = punch.time;
+                } else if (punch.tipo === 'saida' && currentEntryTime) {
+                    const [entryH, entryM] = currentEntryTime.split(':').map(Number);
+                    const [exitH, exitM] = punch.time.split(':').map(Number);
+                    totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                    currentEntryTime = null; // Reset for next entry
+                }
+            }
+
+            let totalHoursFormatted = '00:00';
+            if (totalMinutesWorked > 0) {
+                const hours = Math.floor(totalMinutesWorked / 60);
+                const minutes = totalMinutesWorked % 60;
+                totalHoursFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            }
+
             return {
                 data: date,
-                entrada: dayRec.entrada,
-                saida: dayRec.saida,
-                horas: totalHours,
+                entrada: firstEntry,
+                saida: lastExit,
+                horas: totalHoursFormatted,
                 obs: dayRec.obs.join('; ')
             };
         }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
