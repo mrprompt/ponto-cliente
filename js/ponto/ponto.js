@@ -358,110 +358,54 @@ var Ponto = {
      * Cria a tabela com o resultado das horas trabalhadas e gráficos usando Chart.js
      */
     _criaRelatorio: function(strData) {
+        // Remove existing report and charts
         $('.widget-relatorio').remove();
         $('.widget-grafico').remove();
 
-        // --- START LOCALSTORAGE IMPLEMENTATION ---
         const allRecords = getFromLS(LS_KEYS.RECORDS);
         const currentUserId = localStorage.getItem('id');
+        const filterMonth = strData.substring(0, 7); // YYYY-MM
+
+        // Filter all records for the current user and selected month
         const retorno = allRecords.filter(record => {
-            const recordDate = record.data.substring(0, 7); // YYYY-MM
-            const filterDate = strData.substring(0, 7); // YYYY-MM
-            return record.usuarioId === currentUserId && recordDate === filterDate;
+            const recordMonth = record.data.substring(0, 7);
+            return record.usuarioId === currentUserId && recordMonth === filterMonth;
+        }).sort((a, b) => {
+            // Sort by date, then by time
+            const dateComparison = a.data.localeCompare(b.data);
+            if (dateComparison !== 0) return dateComparison;
+            return a.time.localeCompare(b.time);
         });
 
-        // Group records by date and store all punches
-        const dailyRecords = {};
-        retorno.forEach(record => {
-            const date = record.data; // YYYY-MM-DD
-            if (!dailyRecords[date]) {
-                dailyRecords[date] = {
-                    punches: [], // Store all punches for the day
-                    obs: []
-                };
-            }
-            dailyRecords[date].punches.push({ time: record.time, tipo: record.tipo });
-            if (record.observacao) {
-                dailyRecords[date].obs.push(record.observacao);
-            }
-        });
-
-        // Process daily records to get first entry, last exit, and total hours
-        const processedRetorno = Object.keys(dailyRecords).map(date => {
-            const dayRec = dailyRecords[date];
-            const punches = dayRec.punches.sort((a, b) => a.time.localeCompare(b.time)); // Sort punches by time
-
-            let firstEntry = '';
-            let lastExit = '';
-            let totalMinutesWorked = 0;
-
-            // Find first entry and last exit
-            for (const punch of punches) {
-                if (punch.tipo === 'entrada' && !firstEntry) {
-                    firstEntry = punch.time;
-                }
-                if (punch.tipo === 'saida') { // Always update lastExit to get the absolute last one
-                    lastExit = punch.time;
-                }
-            }
-
-            // Calculate total hours worked by pairing entries and exits
-            let currentEntryTime = null;
-            for (const punch of punches) {
-                if (punch.tipo === 'entrada') {
-                    currentEntryTime = punch.time;
-                } else if (punch.tipo === 'saida' && currentEntryTime) {
-                    const [entryH, entryM] = currentEntryTime.split(':').map(Number);
-                    const [exitH, exitM] = punch.time.split(':').map(Number);
-                    totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
-                    currentEntryTime = null; // Reset for next entry
-                }
-            }
-
-            let totalHoursFormatted = '00:00';
-            if (totalMinutesWorked > 0) {
-                const hours = Math.floor(totalMinutesWorked / 60);
-                const minutes = totalMinutesWorked % 60;
-                totalHoursFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-            }
-
-            return {
-                data: date,
-                entrada: firstEntry,
-                saida: lastExit,
-                horas: totalHoursFormatted,
-                obs: dayRec.obs.join('; ')
-            };
-        }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-        // --- END LOCALSTORAGE IMPLEMENTATION ---
-
+        // Create new report container
         $('<div/>').attr('class', 'widget-relatorio')
             .addClass('ui-widget ui-widget-content ui-helper-clearfix ui-corner-all')
             .append($('<table/>')
                 .attr('id', 'tbRelatorio'))
             .appendTo($('#Ponto'));
 
+        // Create table headers for individual punches
         $('<thead/>')
             .append($('<tr/>')
                 .append($('<th/>')
                     .addClass('data')
                     .html('Data'))
                 .append($('<th/>')
-                    .addClass('entrada')
-                    .html('Entrada'))
+                    .addClass('hora')
+                    .html('Hora'))
                 .append($('<th/>')
-                    .addClass('saida')
-                    .html('Saída'))
+                    .addClass('tipo')
+                    .html('Tipo'))
                 .append($('<th/>')
-                    .addClass('horas')
-                    .html('Horas')))
+                    .addClass('observacao')
+                    .html('Observação')))
             .addClass('ui-widget-header ui-helper-clearfix ui-corner-all')
             .appendTo($('#tbRelatorio'));
 
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
-        if (processedRetorno.length !== 0) {
-            $.each(processedRetorno, function() {
+        if (retorno.length !== 0) {
+            $.each(retorno, function() {
                 var $linha = $('<tr/>')
                     .appendTo($('#tbRelatorio tbody'));
 
@@ -469,59 +413,79 @@ var Ponto = {
                         .addClass('data')
                         .html(this.data))
                     .append($('<td/>')
-                        .addClass('entrada')
-                        .html(this.entrada))
+                        .addClass('hora')
+                        .html(this.time))
                     .append($('<td/>')
-                        .addClass('saida')
-                        .html(this.saida))
+                        .addClass('tipo')
+                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída')))
                     .append($('<td/>')
-                        .addClass('horas')
-                        .html(this.horas));
+                        .addClass('observacao')
+                        .html(this.observacao || '')); // Display empty string if no observation
 
-                var $obs = this.obs;
-
-                if (typeof($obs) === 'string' && $obs.length !== 0) {
-                    $linha.attr('title', $obs)
+                if (this.observacao && this.observacao.length !== 0) {
+                    $linha.attr('title', this.observacao)
                         .addClass('comObs')
                         .tinyTips('title');
                 }
             });
 
+            // --- Data Aggregation for Charts (re-introduced) ---
+            const dailyAggregatedRecords = {};
+            retorno.forEach(record => {
+                const date = record.data;
+                if (!dailyAggregatedRecords[date]) {
+                    dailyAggregatedRecords[date] = {
+                        punches: [],
+                        obs: []
+                    };
+                }
+                dailyAggregatedRecords[date].punches.push({ time: record.time, tipo: record.tipo });
+                if (record.observacao) {
+                    dailyAggregatedRecords[date].obs.push(record.observacao);
+                }
+            });
+
+            const processedForCharts = Object.keys(dailyAggregatedRecords).map(date => {
+                const dayRec = dailyAggregatedRecords[date];
+                const punches = dayRec.punches.sort((a, b) => a.time.localeCompare(b.time));
+
+                let totalMinutesWorked = 0;
+                let currentEntryTime = null;
+                for (const punch of punches) {
+                    if (punch.tipo === 'entrada') {
+                        currentEntryTime = punch.time;
+                    } else if (punch.tipo === 'saida' && currentEntryTime) {
+                        const [entryH, entryM] = currentEntryTime.split(':').map(Number);
+                        const [exitH, exitM] = punch.time.split(':').map(Number);
+                        totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                        currentEntryTime = null;
+                    }
+                }
+                return {
+                    data: date,
+                    totalMinutes: totalMinutesWorked
+                };
+            }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
             var horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
             var intExpediente = horas_dia * 60;
             var intExpedienteCheio = 0;
             var intExpedienteIncompleto = 0;
-            var arrExpedienteMinutos = [];
-            var arrExpedienteHoras = [];
-            var intHorasTotal = 0;
+            var arrExpedienteHoras = {}; // Store hours per day for bar chart
+            var intHorasTotal = 0; // Total hours for meta chart
 
-            $('#tbRelatorio tbody tr').each(function() {
-                var $linha = $(this);
-                var strData = $linha.find('td:eq(0)').html();
-                var strHoras = $linha.find('td:eq(3)').html();
-                var intDia = parseInt(strData.substr(8, 2), 10); // Get day from YYYY-MM-DD
-                var intHora = parseInt(strHoras.substr(0, 2), 10);
-                var intMinuto = parseInt(strHoras.substr(3, 2), 10);
+            processedForCharts.forEach(dayData => {
+                const day = parseInt(dayData.data.substr(8, 2), 10);
+                const totalHours = dayData.totalMinutes / 60;
+                arrExpedienteHoras[day] = totalHours;
+                intHorasTotal += totalHours;
 
-                $linha.addClass('dia' + intDia);
-
-                if (arrExpedienteMinutos[intDia]) {
-                    arrExpedienteMinutos[intDia] += (intHora * 60) + intMinuto;
-                } else {
-                    arrExpedienteMinutos[intDia] = (intHora * 60) + intMinuto;
-                }
-
-                arrExpedienteHoras[intDia] = arrExpedienteMinutos[intDia] / 60;
-            });
-
-            for (var i in arrExpedienteMinutos) {
-                if (arrExpedienteMinutos[i] < intExpediente) {
-                    $('#tbRelatorio tbody tr.dia' + i).addClass('expedienteMenor');
+                if (dayData.totalMinutes < intExpediente) {
                     intExpedienteIncompleto++;
                 } else {
                     intExpedienteCheio++;
                 }
-            }
+            });
 
             // Criação dos containers para gráficos Chart.js
             $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-assiduidade').attr('width', 250).attr('height', 150)).appendTo($('#Ponto'));
@@ -582,10 +546,6 @@ var Ponto = {
                 objData.setDate(objData.getDate() + 1);
             }
 
-            for (var i in arrExpedienteHoras) {
-                intHorasTotal += parseInt(arrExpedienteHoras[i]);
-            }
-
             const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
             const intHorasMes = horas_dia * intDiasMeta;
             new Chart(ctxMetaHoras, {
@@ -594,7 +554,7 @@ var Ponto = {
                     labels: ['Meta Mensal'],
                     datasets: [
                         {
-                            label: 'Cumpridas (' + intHorasTotal + ')',
+                            label: 'Cumpridas (' + intHorasTotal.toFixed(2) + ')', // Use toFixed for display
                             data: [intHorasTotal],
                             backgroundColor: '#DDD6F5'
                         },
