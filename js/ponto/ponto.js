@@ -72,7 +72,7 @@ function setupInitialData() {
         saveToLS(LS_KEYS.USERS, [initialUser]);
         localStorage.setItem(LS_KEYS.NEXT_USER_ID, '2');
     }
-    
+
     if (!localStorage.getItem(LS_KEYS.RECORDS)) {
         saveToLS(LS_KEYS.RECORDS, []);
         localStorage.setItem(LS_KEYS.NEXT_RECORD_ID, '1');
@@ -90,6 +90,12 @@ var Ponto = {
         $('body > #container').empty();
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!window.matchMedia("(display-mode: browser)").matches) {
+                window.resizeTo(640, 480);
+            }
+        });
 
         if (localStorage.getItem('id') !== null) {
             $('#login-form').dialog('close');
