@@ -95,8 +95,8 @@ var Ponto = {
             $('#login-form').dialog('close');
             $('#login-form').remove();
 
-            var header = $('<header/>');
-            var menu = $('<ul/>');
+            const header = $('<header/>'); // Changed var to const
+            const menu = $('<ul/>'); // Changed var to const
 
             header
                 .append($('<span/>')
@@ -157,8 +157,8 @@ var Ponto = {
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
-            var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
-            var objData = new Date();
+            const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
+            const objData = new Date(); // Changed var to const
 
             if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) < 0) {
                 $('header nav ul li:eq(0)').hide();
@@ -174,7 +174,7 @@ var Ponto = {
      * Cria o formulário de login
      */
     _formLogin: function() {
-        var $fieldset = $('<fieldset/>')
+        const $fieldset = $('<fieldset/>') // Changed var to const
             .append($('<label/>')
                 .attr('for', 'usuario')
                 .html('Usuário')
@@ -199,7 +199,7 @@ var Ponto = {
      * Formulário de cadastro de usuário
      */
     _formCadastro: function() {
-        var $fieldset = $('<fieldset/>')
+        const $fieldset = $('<fieldset/>') // Changed var to const
             .append($('<label/>')
                 .attr('for', 'Nome')
                 .html('Nome')
@@ -331,7 +331,7 @@ var Ponto = {
                 .attr('name', 'id')
                 .attr('id', 'id'));
 
-        var $form = $('<form/>')
+        const $form = $('<form/>') // Changed var to const
             .attr('id', 'frmCadastro')
             .append($fieldset);
 
@@ -342,7 +342,7 @@ var Ponto = {
      * Formulário de inserção de hora-ponto
      */
     _formPonto: function() {
-        var $fieldset = $('<fieldset/>')
+        const $fieldset = $('<fieldset/>') // Changed var to const
             .append($('<label/>')
                 .attr('for', 'observacao')
                 .html('Observação')
@@ -406,7 +406,7 @@ var Ponto = {
 
         if (retorno.length !== 0) {
             $.each(retorno, function() {
-                var $linha = $('<tr/>')
+                const $linha = $('<tr/>') // Changed var to const
                     .appendTo($('#tbRelatorio tbody'));
 
                 $linha.append($('<td/>')
@@ -429,7 +429,7 @@ var Ponto = {
                 }
             });
 
-            // --- Data Aggregation for Charts ---
+            // --- Data Aggregation for Charts (re-introduced) ---
             const dailyAggregatedRecords = {};
             retorno.forEach(record => {
                 const date = record.data;
@@ -467,12 +467,12 @@ var Ponto = {
                 };
             }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
-            var horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
-            var intExpediente = horas_dia * 60;
-            var intExpedienteCheio = 0;
-            var intExpedienteIncompleto = 0;
-            var arrExpedienteHoras = {}; // Store hours per day for bar chart
-            var intHorasTotal = 0; // Total hours for meta chart
+            const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10); // Changed var to const
+            const intExpediente = horas_dia * 60; // Changed var to const
+            let intExpedienteCheio = 0; // Changed var to let
+            let intExpedienteIncompleto = 0; // Changed var to let
+            const arrExpedienteHoras = {}; // Changed var to const
+            let intHorasTotal = 0; // Changed var to let
 
             processedForCharts.forEach(dayData => {
                 const day = parseInt(dayData.data.substr(8, 2), 10);
@@ -532,25 +532,19 @@ var Ponto = {
             });
 
             // Gráfico barras - Meta mensal de horas
-            var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
-            var intDiasMes = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
-            var intDiasMeta = 0;
+            const arrDiasTrabalhoMeta = localStorage.getItem('dias_trabalho').split(','); // Renamed to avoid conflict
+            const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text()); // Changed var to const
+            let intDiasMeta = 0; // Changed var to let
 
-            var arrData = strData.split('-');
-            var objData = new Date(arrData[0], arrData[1] - 1, 1);
+            const arrDataSplit = strData.split('-'); // Renamed to avoid conflict
+            let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1); // Changed var to let
 
-            for (var i = 1; i <= intDiasMes; i++) {
-                if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
+            for (let i = 1; i <= intDiasMesLastDay; i++) { // Changed var to let
+                if ($.inArray(objDataLoop.getDay().toString(), arrDiasTrabalhoMeta) >= 0) {
                     intDiasMeta++;
                 }
-                objData.setDate(objData.getDate() + 1);
+                objDataLoop.setDate(objDataLoop.getDate() + 1);
             }
-
-            // intHorasTotal já está acumulado corretamente do loop processedForCharts.forEach
-            // A linha abaixo foi removida pois estava somando novamente o total de horas
-            // for (var i in arrExpedienteHoras) {
-            //     intHorasTotal += parseInt(arrExpedienteHoras[i]);
-            // }
 
             const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
             const intHorasMes = horas_dia * intDiasMeta;
@@ -736,43 +730,44 @@ var Ponto = {
      * Validação do form de cadastro
      */
     _validaCadastro: function() {
-        var bValid = new String();
+        const bValid = []; // Changed to array to collect messages
 
         if ($('#nome').val().toString().length === 0) {
-            bValid += 'Nome inválido.<br>';
+            bValid.push('Nome inválido.');
         }
 
         if ($('#usuario').val().toString().length === 0) {
-            bValid += 'Login inválido.<br>';
+            bValid.push('Login inválido.');
         }
 
         if ($('#email').val().toString().match(/^[A-Za-z0-9_\-\.]+@[A-Za-z0-9_\-\.]{2,}\.[A-Za-z0-9]{2,}(\.[A-Za-z0-9])?/) === null) {
-            bValid += 'E-mail inválido.<br>';
+            bValid.push('E-mail inválido.');
         }
 
         if ($('input[type=password]').is(':visible')) {
             if ($('#senha').val().toString().length === 0) {
-                bValid += 'Senha inválida.<br>';
+                bValid.push('Senha inválida.');
             }
 
             if ($('#senha_confirmacao').val() !== $('#senha').val()) {
-                bValid += 'Senha e confirmação são diferentes.<br>';
+                bValid.push('Senha e confirmação são diferentes.');
             }
         }
 
         if ($('#horas_dia').val().toString().match(/^[0-9]+$/) === null) {
-            bValid += 'Carga horária inválida.<br>';
+            bValid.push('Carga horária inválida.');
         }
 
-        if (bValid && $('#horas_almoco').val().toString().match(/^[0-9]+$/) === null) {
-            bValid += 'Intervalo inválido.<br>';
+        // Check if horas_almoco is valid only if horas_dia is valid
+        if (bValid.length === 0 && $('#horas_almoco').val().toString().match(/^[0-9]+$/) === null) {
+            bValid.push('Intervalo inválido.');
         }
 
         if (parseInt($('#horas_dia').val()) < parseInt($('#horas_almoco').val())) {
-            bValid += 'Você não pode ter um intervalo maior que sua carga horária.<br>';
+            bValid.push('Você não pode ter um intervalo maior que sua carga horária.');
         }
 
-        return bValid;
+        return bValid.join('<br>'); // Join messages with <br>
     },
 
     /**
@@ -794,7 +789,7 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    var bValid = Ponto._validaCadastro();
+                    const bValid = Ponto._validaCadastro(); // Changed var to const
 
                     if (bValid.length === 0) {
                         // --- START LOCALSTORAGE IMPLEMENTATION ---
@@ -859,7 +854,7 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Login": function() {
-                    var bValid = true;
+                    let bValid = true; // Changed var to let
                     bValid = bValid && $('#usuario').val().length !== 0;
                     bValid = bValid && $('#senha').val().length !== 0;
 
@@ -903,11 +898,11 @@ var Ponto = {
      * Encerra a sessão do usuário
      */
     logout: function() {
-        var mensagem = '';
+        let mensagem = ''; // Changed var to let
 
         // retomar sessão original
         if (localStorage.getItem('inicial') !== null) {
-            var original = JSON.parse(localStorage.getItem('inicial'));
+            const original = JSON.parse(localStorage.getItem('inicial')); // Changed var to const
             mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
@@ -983,8 +978,8 @@ var Ponto = {
      * Registro de ponto
      */
     ponto: function() {
-        var arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(',');
-        var objData = new Date();
+        const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
+        const objData = new Date(); // Changed var to const
 
         if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
             $('<div/>')
@@ -1095,12 +1090,12 @@ var Ponto = {
         $('#cadastro-form form input[type=password]').parent().hide();
 
         // marco os dias da semana que são trabalhados
-        var $dias = localStorage.getItem('dias_trabalho').split(',');
+        const $dias = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
 
         $('#cadastro-form form input[type=checkbox]')
             .attr('checked', false);
 
-        for (var i in $dias) {
+        for (const i in $dias) { // Changed var to const
             $('#cadastro-form form #dias_trabalho_' + $dias[i])
                 .attr('checked', true);
         }
@@ -1112,7 +1107,7 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Atualizar": function() {
-                    var bValid = Ponto._validaCadastro();
+                    const bValid = Ponto._validaCadastro(); // Changed var to const
 
                     if (bValid.length === 0) {
                         // --- START LOCALSTORAGE IMPLEMENTATION ---
@@ -1184,7 +1179,7 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    var bValid = Ponto._validaCadastro();
+                    const bValid = Ponto._validaCadastro(); // Changed var to const
 
                     if (bValid.length === 0) {
                         // --- START LOCALSTORAGE IMPLEMENTATION ---
@@ -1242,13 +1237,13 @@ var Ponto = {
     relatorio: function() {
         $('#Ponto').empty();
 
-        var objData = new Date();
-        var mesAtual = new Number(objData.getMonth()) + 1;
-        var diaAtual = new Number(objData.getDate());
+        const objData = new Date(); // Changed var to const
+        const mesAtual = objData.getMonth() + 1; // Changed new Number() to direct access
+        const diaAtual = objData.getDate(); // Changed new Number() to direct access
 
-        var mes = mesAtual < 10 ? '0' + mesAtual : mesAtual;
-        var dia = diaAtual < 10 ? '0' + diaAtual : diaAtual;
-        var ano = objData.getFullYear();
+        const mes = mesAtual < 10 ? '0' + mesAtual : mesAtual; // Changed var to const
+        const dia = diaAtual < 10 ? '0' + diaAtual : diaAtual; // Changed var to const
+        const ano = objData.getFullYear(); // Changed var to const
 
         // monto um calendário para poder filtrar o relatório
         $('<div/>')
@@ -1273,8 +1268,8 @@ var Ponto = {
                 hideIfNoPrevNext: true,
                 maxDate: '+0d',
                 onSelect: function(dateText, inst) {
-                    var arrData = dateText.split('-');
-                    var strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2];
+                    const arrData = dateText.split('-'); // Changed var to const
+                    const strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2]; // Changed var to const
 
                     Ponto._criaRelatorio(strData);
                 },
@@ -1329,7 +1324,7 @@ var Ponto = {
                 .appendTo($('#tbUsuarios'));
 
             $.each(retorno, function(intLinha, objUsuario) {
-                var $linha = $('<tr/>').appendTo($('#tbUsuarios tbody'));
+                const $linha = $('<tr/>').appendTo($('#tbUsuarios tbody')); // Changed var to const
 
                 $linha.append($('<td/>')
                         .addClass('id')
@@ -1377,15 +1372,15 @@ var Ponto = {
                     Ponto._adicionarUsuario();
                 },
                 'Remover selecionados': function() {
-                    var $selecionados = $('#tbUsuarios input:checkbox:checked');
-                    var $lista = new Array();
+                    const $selecionados = $('#tbUsuarios input:checkbox:checked'); // Changed var to const
+                    const $lista = []; // Changed var to const and initialized as array
 
-                    $selecionados.each(function(i) {
-                        $lista[i] = $(this).val();
+                    $selecionados.each(function() { // Removed i parameter as it's not used
+                        $lista.push($(this).val());
                     });
 
                     if ($lista.length !== 0) {
-                        var $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.';
+                        const $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.'; // Changed var to const
 
                         $('<div/>')
                             .attr('id', 'apagar-form')
