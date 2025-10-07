@@ -417,7 +417,7 @@ var Ponto = {
                         .html(this.time))
                     .append($('<td/>')
                         .addClass('tipo')
-                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída')))
+                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída'))
                     .append($('<td/>')
                         .addClass('observacao')
                         .html(this.observacao || '')); // Display empty string if no observation
