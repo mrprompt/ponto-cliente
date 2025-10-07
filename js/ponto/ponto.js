@@ -72,6 +72,7 @@ function setupInitialData() {
         saveToLS(LS_KEYS.USERS, [initialUser]);
         localStorage.setItem(LS_KEYS.NEXT_USER_ID, '2');
     }
+    
     if (!localStorage.getItem(LS_KEYS.RECORDS)) {
         saveToLS(LS_KEYS.RECORDS, []);
         localStorage.setItem(LS_KEYS.NEXT_RECORD_ID, '1');
@@ -79,8 +80,6 @@ function setupInitialData() {
 }
 
 var Ponto = {
-    // apiServer: 'http://localhost:8888', // Removed as we are using localStorage
-
     /**
      * Cria o ambiente
      */
@@ -100,6 +99,10 @@ var Ponto = {
             var menu = $('<ul/>');
 
             header
+                .append($('<span/>')
+                        .html('Logado como: ')
+                        .append($('<b/>').html(localStorage.getItem('nome')))
+                )
                 .append($('<nav/>')
                     .append(
                         menu
@@ -110,7 +113,9 @@ var Ponto = {
                                 .button()
                                 .click(function() {
                                     Ponto.ponto();
-                                })))
+                                })
+                            )
+                        )
                         .append($('<li/>')
                             .append($('<a/>')
                                 .html('Preferências')
@@ -118,11 +123,11 @@ var Ponto = {
                                 .button()
                                 .click(function() {
                                     Ponto.preferencias();
-                                }))))
-                    .append($('<span/>')
-                        .html('Logado como: ')
-                        .append($('<br/>'))
-                        .append($('<b/>').html(localStorage.getItem('nome')))))
+                                })
+                            )
+                        )
+                    )
+                )
                 .insertBefore($('#Ponto'));
 
             if (localStorage.getItem('owner') == 'null') { // Check if current user is an owner (owner is null for top-level admin)
@@ -134,7 +139,9 @@ var Ponto = {
                             .button()
                             .click(function() {
                                 Ponto.usuarios();
-                            })))
+                            })
+                        )
+                    )
             }
 
             menu.append($('<li/>')
@@ -144,7 +151,9 @@ var Ponto = {
                     .button()
                     .click(function() {
                         Ponto.logout();
-                    })));
+                    })
+                )
+            );
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
@@ -156,8 +165,7 @@ var Ponto = {
             }
 
             Ponto.relatorio();
-        }
-        else {
+        } else {
             Ponto.login();
         }
     },

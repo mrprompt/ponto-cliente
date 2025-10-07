@@ -34,6 +34,7 @@ noscript {
     border-radius: 10px;
     -moz-box-shadow: 0 2px 3px rgba(0,0,0,.2);
     -webkit-box-shadow: 0 2px 3px rgba(0,0,0,.2);
+    box-shadow: 0 2px 3px rgba(0,0,0,.2);
     background-color: #fcefa1;
     border: 1px solid #909090;
     padding: 10px;
@@ -52,17 +53,22 @@ noscript {
 
 /* --- sessões */
 header {
-    margin-bottom:5px;
-    margin-top: 10px;
+    margin-bottom:10px;
+    margin-top: 5px;
+}
+header span {
+    display: inline-block;
+    font-weight: bold;
+    color: #505050;
+    margin-top: 2px;
 }
 header nav {
     display: block;
-    height: 32px;
+    margin-top: 5px;
 }
 nav ul {
     list-style:none;
     display: inline-block;
-    float: left;
 }
 nav ul li {
     display: inline-block;
@@ -153,7 +159,7 @@ nav .ui-button {
     display: block;
     position: relative;
     left: 335px;
-    top: 7px;
+    /* top: 7px; */
 }
 .widget-grafico {
     display: block;
@@ -165,7 +171,7 @@ nav .ui-button {
 .widget-relatorio {
     display: block;
     position: absolute;
-    top: 53px;
+    top: 73px;
     width: auto;
     text-align: center;
     padding: 2px;
@@ -216,7 +222,6 @@ nav .ui-button {
 /* --- bater o ponto */
 #ponto-form label {
     display: block;
-    vertical-align: top;
     width: 100%;
 }
 #ponto-form textarea {
