@@ -429,7 +429,7 @@ var Ponto = {
                 }
             });
 
-            // --- Data Aggregation for Charts (re-introduced) ---
+            // --- Data Aggregation for Charts ---
             const dailyAggregatedRecords = {};
             retorno.forEach(record => {
                 const date = record.data;
@@ -478,8 +478,8 @@ var Ponto = {
                 const day = parseInt(dayData.data.substr(8, 2), 10);
                 const totalHours = dayData.totalMinutes / 60;
                 arrExpedienteHoras[day] = totalHours;
-                intHorasTotal += totalHours;
-
+                intHorasTotal += totalHours; // Accumulate total hours for the month
+                
                 if (dayData.totalMinutes < intExpediente) {
                     intExpedienteIncompleto++;
                 } else {
@@ -545,6 +545,12 @@ var Ponto = {
                 }
                 objData.setDate(objData.getDate() + 1);
             }
+
+            // intHorasTotal já está acumulado corretamente do loop processedForCharts.forEach
+            // A linha abaixo foi removida pois estava somando novamente o total de horas
+            // for (var i in arrExpedienteHoras) {
+            //     intHorasTotal += parseInt(arrExpedienteHoras[i]);
+            // }
 
             const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
             const intHorasMes = horas_dia * intDiasMeta;
