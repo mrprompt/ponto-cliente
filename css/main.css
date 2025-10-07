@@ -193,6 +193,9 @@ nav .ui-button {
 .widget-relatorio table .horas {
     width: 75px;
 }
+.widget-relatorio table .observacao {
+    width: 80px;
+}
 .widget-relatorio table thead {
     margin-bottom: 2px;
 }
