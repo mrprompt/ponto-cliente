@@ -371,10 +371,10 @@ var Ponto = {
             const recordMonth = record.data.substring(0, 7);
             return record.usuarioId === currentUserId && recordMonth === filterMonth;
         }).sort((a, b) => {
-            // Sort by date, then by time
-            const dateComparison = a.data.localeCompare(b.data);
+            // Sort by date (newest first), then by time (newest first)
+            const dateComparison = b.data.localeCompare(a.data); // Reverse for newest first
             if (dateComparison !== 0) return dateComparison;
-            return a.time.localeCompare(b.time);
+            return b.time.localeCompare(a.time); // Reverse for newest first
         });
 
         // Create new report container
@@ -417,7 +417,7 @@ var Ponto = {
                         .html(this.time))
                     .append($('<td/>')
                         .addClass('tipo')
-                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída'))
+                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída')))
                     .append($('<td/>')
                         .addClass('observacao')
                         .html(this.observacao || '')); // Display empty string if no observation
@@ -1237,13 +1237,13 @@ var Ponto = {
     relatorio: function() {
         $('#Ponto').empty();
 
-        const objData = new Date(); // Changed var to const
-        const mesAtual = objData.getMonth() + 1; // Changed new Number() to direct access
-        const diaAtual = objData.getDate(); // Changed new Number() to direct access
+        const objData = new Date();
+        const mesAtual = objData.getMonth() + 1;
+        const diaAtual = objData.getDate();
 
-        const mes = mesAtual < 10 ? '0' + mesAtual : mesAtual; // Changed var to const
-        const dia = diaAtual < 10 ? '0' + diaAtual : diaAtual; // Changed var to const
-        const ano = objData.getFullYear(); // Changed var to const
+        const mes = mesAtual < 10 ? '0' + mesAtual : mesAtual;
+        const dia = diaAtual < 10 ? '0' + diaAtual : diaAtual;
+        const ano = objData.getFullYear();
 
         // monto um calendário para poder filtrar o relatório
         $('<div/>')
@@ -1268,8 +1268,8 @@ var Ponto = {
                 hideIfNoPrevNext: true,
                 maxDate: '+0d',
                 onSelect: function(dateText, inst) {
-                    const arrData = dateText.split('-'); // Changed var to const
-                    const strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2]; // Changed var to const
+                    const arrData = dateText.split('-');
+                    const strData = arrData[0] + '-' + arrData[1] + '-' + arrData[2];
 
                     Ponto._criaRelatorio(strData);
                 },
