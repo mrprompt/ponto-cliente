@@ -729,9 +729,9 @@ var Ponto = {
     },
 
     /**
-     * Formulário para edição de um registro de ponto.
+     * Formulário para edição de um par de registros de ponto (entrada e saída).
      */
-    _formEditPunch: function(punchData) {
+    _formEditPunchPair: function(date, entryPunch = null, exitPunch = null) {
         const $fieldset = $('<fieldset/>');
 
         // Date field (read-only)
@@ -742,62 +742,61 @@ var Ponto = {
                 .attr('type', 'text')
                 .attr('name', 'edit-date')
                 .attr('id', 'edit-date')
-                .val(punchData.data)
+                .val(date)
                 .attr('readonly', 'readonly')
                 .addClass('text ui-widget-content ui-corner-all')));
 
-        // Time field
+        // Entry Section
+        $fieldset.append($('<h4/>').html('Entrada').css('margin-top', '15px'));
         $fieldset.append($('<label/>')
-            .attr('for', 'edit-time')
+            .attr('for', 'edit-entry-time')
             .html('Hora')
             .append($('<input/>')
                 .attr('type', 'text')
-                .attr('name', 'edit-time')
-                .attr('id', 'edit-time')
-                .val(punchData.time)
+                .attr('name', 'edit-entry-time')
+                .attr('id', 'edit-entry-time')
+                .val(entryPunch ? entryPunch.time : '')
                 .mask('99:99', { placeholder: "HH:MM" })
-                .addClass('text ui-widget-content ui-corner-all required')));
-
-        // Type field (radio buttons)
-        const $typeContainer = $('<div/>').addClass('radioContainer');
-        $typeContainer.append($('<input/>')
-            .attr('type', 'radio')
-            .attr('name', 'edit-type')
-            .attr('id', 'edit-type-entrada')
-            .val('entrada')
-            .attr('checked', punchData.tipo === 'entrada' ? 'checked' : false));
-        $typeContainer.append($('<label/>')
-            .attr('for', 'edit-type-entrada')
-            .html('Entrada'));
-
-        $typeContainer.append($('<input/>')
-            .attr('type', 'radio')
-            .attr('name', 'edit-type')
-            .attr('id', 'edit-type-saida')
-            .val('saida')
-            .attr('checked', punchData.tipo === 'saida' ? 'checked' : false));
-        $typeContainer.append($('<label/>')
-            .attr('for', 'edit-type-saida')
-            .html('Saída'));
-
-        $fieldset.append($('<label/>').html('Tipo').append($typeContainer));
-
-        // Observation field
+                .addClass('text ui-widget-content ui-corner-all')));
         $fieldset.append($('<label/>')
-            .attr('for', 'edit-observacao')
+            .attr('for', 'edit-entry-observacao')
             .html('Observação')
             .append($('<textarea/>')
-                .attr('name', 'edit-observacao')
-                .attr('id', 'edit-observacao')
-                .val(punchData.observacao)
+                .attr('name', 'edit-entry-observacao')
+                .attr('id', 'edit-entry-observacao')
+                .val(entryPunch ? entryPunch.observacao : '')
                 .addClass('text ui-widget-content ui-corner-all')));
-
-        // Hidden ID field
         $fieldset.append($('<input/>')
             .attr('type', 'hidden')
-            .attr('name', 'edit-id')
-            .attr('id', 'edit-id')
-            .val(punchData.id));
+            .attr('name', 'edit-entry-id')
+            .attr('id', 'edit-entry-id')
+            .val(entryPunch ? entryPunch.id : ''));
+
+        // Exit Section
+        $fieldset.append($('<h4/>').html('Saída').css('margin-top', '15px'));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-exit-time')
+            .html('Hora')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-exit-time')
+                .attr('id', 'edit-exit-time')
+                .val(exitPunch ? exitPunch.time : '')
+                .mask('99:99', { placeholder: "HH:MM" })
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-exit-observacao')
+            .html('Observação')
+            .append($('<textarea/>')
+                .attr('name', 'edit-exit-observacao')
+                .attr('id', 'edit-exit-observacao')
+                .val(exitPunch ? exitPunch.observacao : '')
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<input/>')
+            .attr('type', 'hidden')
+            .attr('name', 'edit-exit-id')
+            .attr('id', 'edit-exit-id')
+            .val(exitPunch ? exitPunch.id : ''));
 
         return $('<form/>').append($fieldset);
     },
@@ -807,23 +806,27 @@ var Ponto = {
      */
     _openEditPunchModal: function(entradaId, saidaId) {
         const allRecords = getFromLS(LS_KEYS.RECORDS);
-        let punchToEdit = null;
-        let isPaired = false;
+        let entryPunch = null;
+        let exitPunch = null;
+        let recordDate = '';
+        const currentUserId = getCurrentUser().id;
 
-        if (entradaId && saidaId) {
-            // This is a paired entry/exit. We'll edit the exit punch.
-            punchToEdit = allRecords.find(r => r.id === saidaId);
-            isPaired = true;
-        } else if (entradaId) {
-            // Unmatched entry
-            punchToEdit = allRecords.find(r => r.id === entradaId);
-        } else if (saidaId) {
-            // Unmatched exit
-            punchToEdit = allRecords.find(r => r.id === saidaId);
+        if (entradaId) {
+            entryPunch = allRecords.find(r => r.id === entradaId && r.usuarioId === currentUserId);
+            if (entryPunch) recordDate = entryPunch.data;
+        }
+        if (saidaId) {
+            exitPunch = allRecords.find(r => r.id === saidaId && r.usuarioId === currentUserId);
+            if (exitPunch) recordDate = exitPunch.data;
         }
 
-        if (!punchToEdit) {
-            Ponto._showErro('Registro de ponto não encontrado.');
+        // If we have one punch but not the other, ensure recordDate is set
+        if (!recordDate && (entryPunch || exitPunch)) {
+            recordDate = (entryPunch || exitPunch).data;
+        }
+
+        if (!recordDate) {
+            Ponto._showErro('Data do registro de ponto não encontrada.');
             return;
         }
 
@@ -831,58 +834,109 @@ var Ponto = {
             .attr('id', 'edit-punch-modal')
             .appendTo($('#Ponto'));
 
-        $(Ponto._formEditPunch(punchToEdit)).appendTo($('#edit-punch-modal'));
+        $(Ponto._formEditPunchPair(recordDate, entryPunch, exitPunch)).appendTo($('#edit-punch-modal'));
 
         $("#edit-punch-modal").dialog({
-            title: 'Editar Registro de Ponto',
-            width: 350,
+            title: 'Editar Registros de Ponto',
+            width: 380, // Adjusted width for two sections
             modal: true,
             resizable: false,
             buttons: {
                 "Salvar": function() {
-                    const punchId = $('#edit-punch-modal #edit-id').val();
-                    const newTime = $('#edit-punch-modal #edit-time').val();
-                    const newType = $('#edit-punch-modal input[name="edit-type"]:checked').val();
-                    const newObs = $('#edit-punch-modal #edit-observacao').val();
+                    const newEntryTime = $('#edit-punch-modal #edit-entry-time').val().trim();
+                    const newEntryObs = $('#edit-punch-modal #edit-entry-observacao').val().trim();
+                    const entryPunchId = $('#edit-punch-modal #edit-entry-id').val();
 
-                    if (!newTime.match(/^\d{2}:\d{2}$/)) {
-                        Ponto._showErro('Formato de hora inválido. Use HH:MM.');
+                    const newExitTime = $('#edit-punch-modal #edit-exit-time').val().trim();
+                    const newExitObs = $('#edit-punch-modal #edit-exit-observacao').val().trim();
+                    const exitPunchId = $('#edit-punch-modal #edit-exit-id').val();
+
+                    const date = $('#edit-punch-modal #edit-date').val();
+                    const currentUserId = getCurrentUser().id;
+
+                    let recordsToUpdate = getFromLS(LS_KEYS.RECORDS);
+                    let changesMade = false;
+
+                    // Helper for time validation
+                    const isValidTime = (time) => time === '' || /^\d{2}:\d{2}$/.test(time);
+
+                    if (!isValidTime(newEntryTime) || !isValidTime(newExitTime)) {
+                        Ponto._showErro('Formato de hora inválido. Use HH:MM ou deixe em branco.');
                         return;
                     }
 
-                    let updated = false;
-                    const updatedRecords = allRecords.map(record => {
-                        if (record.id === punchId) {
-                            updated = true;
-                            return {
-                                ...record,
-                                time: newTime,
-                                tipo: newType,
-                                observacao: newObs
-                            };
+                    // Process Entry Punch
+                    if (newEntryTime !== '') {
+                        if (entryPunchId) {
+                            // Update existing entry
+                            recordsToUpdate = recordsToUpdate.map(record => {
+                                if (record.id === entryPunchId) {
+                                    changesMade = true;
+                                    return { ...record, time: newEntryTime, observacao: newEntryObs };
+                                }
+                                return record;
+                            });
+                        } else {
+                            // Create new entry
+                            const newId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
+                            recordsToUpdate.push({
+                                id: newId,
+                                usuarioId: currentUserId,
+                                data: date,
+                                time: newEntryTime,
+                                tipo: 'entrada',
+                                observacao: newEntryObs
+                            });
+                            changesMade = true;
                         }
-                        return record;
-                    });
-
-                    if (updated) {
-                        saveToLS(LS_KEYS.RECORDS, updatedRecords);
-                        $(this).dialog('close');
-                        Ponto.relatorio(); // Refresh report
-                        Ponto._showMsg('Registro atualizado com sucesso!');
                     } else {
-                        Ponto._showErro('Falha ao atualizar o registro.');
+                        if (entryPunchId) {
+                            // Delete existing entry
+                            recordsToUpdate = recordsToUpdate.filter(record => record.id !== entryPunchId);
+                            changesMade = true;
+                        }
                     }
-                },
-                "Excluir": function() {
-                    const punchId = $('#edit-punch-modal #edit-id').val();
-                    const confirmDelete = confirm('Tem certeza que deseja excluir este registro de ponto?');
 
-                    if (confirmDelete) {
-                        const filteredRecords = allRecords.filter(record => record.id !== punchId);
-                        saveToLS(LS_KEYS.RECORDS, filteredRecords);
+                    // Process Exit Punch
+                    if (newExitTime !== '') {
+                        if (exitPunchId) {
+                            // Update existing exit
+                            recordsToUpdate = recordsToUpdate.map(record => {
+                                if (record.id === exitPunchId) {
+                                    changesMade = true;
+                                    return { ...record, time: newExitTime, observacao: newExitObs };
+                                }
+                                return record;
+                            });
+                        } else {
+                            // Create new exit
+                            const newId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
+                            recordsToUpdate.push({
+                                id: newId,
+                                usuarioId: currentUserId,
+                                data: date,
+                                time: newExitTime,
+                                tipo: 'saida',
+                                observacao: newExitObs
+                            });
+                            changesMade = true;
+                        }
+                    } else {
+                        if (exitPunchId) {
+                            // Delete existing exit
+                            recordsToUpdate = recordsToUpdate.filter(record => record.id !== exitPunchId);
+                            changesMade = true;
+                        }
+                    }
+
+                    if (changesMade) {
+                        saveToLS(LS_KEYS.RECORDS, recordsToUpdate);
                         $(this).dialog('close');
                         Ponto.relatorio(); // Refresh report
-                        Ponto._showMsg('Registro excluído com sucesso!');
+                        Ponto._showMsg('Registros atualizados com sucesso!');
+                    } else {
+                        Ponto._showMsg('Nenhuma alteração foi feita.');
+                        $(this).dialog('close');
                     }
                 },
                 "Fechar": function() {

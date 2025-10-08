@@ -293,6 +293,14 @@ nav .ui-button {
 /* --- /lista de usuário */
 
 /* --- edit-punch-modal specific styling */
+#edit-punch-modal h4 {
+    margin-bottom: 5px;
+    color: #505050;
+    font-size: 105%;
+    border-bottom: 1px solid #EEE;
+    padding-bottom: 3px;
+}
+
 #edit-punch-modal label {
     display: block; /* Keep labels on their own line */
     margin-bottom: 5px;
@@ -300,29 +308,34 @@ nav .ui-button {
 }
 #edit-punch-modal input[type="text"],
 #edit-punch-modal textarea {
-    width: 250px; /* Consistent width for text inputs and textarea */
+    width: calc(100% - 12px); /* Adjust width to account for padding and border */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
     padding: 5px;
     display: block; /* Ensure they break line after their label */
     margin-top: 2px; /* Small vertical spacing */
     margin-left: 0; /* Reset any inherited left margin */
 }
+
+/* Remove radioContainer specific styles as it's no longer used in this modal */
+/*
 #edit-punch-modal .radioContainer {
-    display: flex; /* Arrange radio buttons and their labels horizontally */
-    align-items: center; /* Vertically align items in the flex container */
-    margin-top: 5px; /* Space from the 'Tipo' label */
-    margin-bottom: 10px; /* Space before next fieldset/label */
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 #edit-punch-modal .radioContainer input[type="radio"] {
-    margin-right: 5px; /* Space between radio button and its label text */
-    vertical-align: middle; /* Ensure vertical alignment */
-    margin-left: 0; /* Reset any inherited left margin */
+    margin-right: 5px;
+    vertical-align: middle;
+    margin-left: 0;
 }
 #edit-punch-modal .radioContainer label {
-    display: inline-block; /* Keep the label text inline with its radio button */
-    margin-right: 15px; /* Space between radio button groups (e.g., "Entrada" and "Saída") */
-    margin-bottom: 0; /* Override the block label margin */
-    font-size: 1em; /* Ensure consistent font size */
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 0;
+    font-size: 1em;
 }
+*/
 
 /* ---- responsive */
 @media (max-width: 480px) {
