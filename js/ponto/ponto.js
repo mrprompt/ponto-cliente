@@ -392,51 +392,36 @@ var Ponto = {
             const dayData = dailyAggregatedData[date];
             const punches = dayData.punches.sort((a, b) => a.time.localeCompare(b.time));
 
-            let displayEntryTime = '';
-            let displayExitTime = '';
-            let calculatedTotalMinutes = 0;
-            let lastEntryForCalc = '';
-            let lastExitForCalc = '';
+            let lastEntryTime = ''; // Will store the last entry for the day
+            let lastExitTime = '';  // Will store the last exit for the day
+            let totalMinutesWorked = 0;
 
-            if (punches.length > 0) {
-                displayEntryTime = punches[0].time; // First punch for display
-
-                // Find last exit for display
-                for (let k = punches.length - 1; k >= 0; k--) {
-                    if (punches[k].tipo === 'saida') {
-                        displayExitTime = punches[k].time;
-                        break;
-                    }
-                }
-
-                // Find last entry and last exit for total hours calculation (as per attached version)
-                for (let k = punches.length - 1; k >= 0; k--) {
-                    if (punches[k].tipo === 'entrada' && !lastEntryForCalc) {
-                        lastEntryForCalc = punches[k].time;
-                    }
-                    if (punches[k].tipo === 'saida' && !lastExitForCalc) {
-                        lastExitForCalc = punches[k].time;
-                    }
-                    if (lastEntryForCalc && lastExitForCalc) break;
-                }
-
-                if (lastEntryForCalc && lastExitForCalc) {
-                    const [entryH, entryM] = lastEntryForCalc.split(':').map(Number);
-                    const [exitH, exitM] = lastExitForCalc.split(':').map(Number);
-                    calculatedTotalMinutes = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+            // Find the last entry and last exit for the day
+            for (const punch of punches) {
+                if (punch.tipo === 'entrada') {
+                    lastEntryTime = punch.time;
+                } else if (punch.tipo === 'saida') {
+                    lastExitTime = punch.time;
                 }
             }
 
-            const hours = Math.floor(calculatedTotalMinutes / 60);
-            const minutes = calculatedTotalMinutes % 60;
+            // Calculate total minutes based on the last entry and last exit
+            if (lastEntryTime && lastExitTime) {
+                const [entryH, entryM] = lastEntryTime.split(':').map(Number);
+                const [exitH, exitM] = lastExitTime.split(':').map(Number);
+                totalMinutesWorked = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+            }
+
+            const hours = Math.floor(totalMinutesWorked / 60);
+            const minutes = totalMinutesWorked % 60;
             const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
             return {
                 data: date,
-                entrada: displayEntryTime,
-                saida: displayExitTime,
+                entrada: lastEntryTime, // Display last entry
+                saida: lastExitTime,   // Display last exit
                 horas: formattedHours,
-                totalMinutes: calculatedTotalMinutes,
+                totalMinutes: totalMinutesWorked,
                 obs: dayData.obs.join('; ')
             };
         }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()); // Sort by date ascending for display
@@ -610,7 +595,7 @@ var Ponto = {
         } else {
             $('<tr/>')
                 .append(
-                    $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados') // Changed colspan to 4
+                    $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados')
                 ).appendTo($('#tbRelatorio tbody'));
         }
     },
