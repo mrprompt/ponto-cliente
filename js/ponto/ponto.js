@@ -1584,6 +1584,77 @@ var Ponto = {
     },
 
     /**
+     * Exibe um modal com o JSON para exportação e um botão de copiar.
+     */
+    _showExportDataModal: function(jsonData) {
+        const $exportModal = $('<div/>')
+            .attr('id', 'export-data-modal')
+            .appendTo($('#Ponto'));
+
+        $exportModal.append(
+            $('<p/>').html('Copie o JSON abaixo para um arquivo de texto (.json) para fazer backup dos seus dados.')
+        );
+
+        const $textarea = $('<textarea/>')
+            .attr('id', 'exportJsonData')
+            .attr('readonly', 'readonly')
+            .css({
+                width: '100%',
+                height: '200px',
+                resize: 'vertical',
+                'box-sizing': 'border-box',
+                'font-family': 'monospace'
+            })
+            .val(jsonData)
+            .appendTo($exportModal);
+
+        $exportModal.dialog({
+            title: 'Exportar Dados',
+            width: 500,
+            modal: true,
+            resizable: true,
+            buttons: [{
+                text: 'Copiar para Área de Transferência',
+                icons: {
+                    primary: 'ui-icon-copy'
+                },
+                click: function() {
+                    const textarea = document.getElementById('exportJsonData');
+                    textarea.select();
+                    textarea.setSelectionRange(0, 99999); // Para dispositivos móveis
+
+                    try {
+                        // Tenta usar a API moderna de Clipboard
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(textarea.value).then(function() {
+                                Ponto._showMsg('Dados copiados para a área de transferência!');
+                            }).catch(function(err) {
+                                console.error('Erro ao copiar para a área de transferência (API):', err);
+                                Ponto._showErro('Falha ao copiar. Por favor, copie manualmente.');
+                            });
+                        } else {
+                            // Fallback para execCommand (deprecated, mas ainda funciona em alguns navegadores)
+                            document.execCommand('copy');
+                            Ponto._showMsg('Dados copiados para a área de transferência!');
+                        }
+                    } catch (err) {
+                        console.error('Erro ao copiar para a área de transferência:', err);
+                        Ponto._showErro('Falha ao copiar. Por favor, copie manualmente.');
+                    }
+                }
+            }, {
+                text: 'Fechar',
+                click: function() {
+                    $(this).dialog('close');
+                }
+            }],
+            close: function() {
+                $("#export-data-modal").remove();
+            }
+        });
+    },
+
+    /**
      * Exporta todos os dados do LocalStorage para um arquivo JSON.
      */
     exportData: function() {
@@ -1610,19 +1681,9 @@ var Ponto = {
             return;
         }
 
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ponto_eletronico_data.json';
-        document.body.appendChild(a);
-        a.click(); // Isso deve disparar o download
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        Ponto._showMsg('Dados exportados com sucesso!');
-        console.log('Export data process finished, message shown.'); // Log para depuração
+        // Chama a nova função para exibir o modal com o JSON
+        Ponto._showExportDataModal(jsonString);
+        console.log('Export data process finished, modal shown.'); // Log para depuração
     },
 
     /**
