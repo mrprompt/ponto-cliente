@@ -401,7 +401,7 @@ var Ponto = {
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
         Object.keys(dailyGroupedPunches).sort().forEach(date => {
-            const dayData = dailyGroupedPunches[date]; // Correctly define dayData here
+            const dayData = dailyGroupedPunches[date];
             const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
             const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
 
@@ -444,8 +444,17 @@ var Ponto = {
                             obs: dayObservations
                         });
                         currentEntryTime = null; // Reset for next pair
+                    } else {
+                        // This is an unmatched exit. Add it to the report.
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: '', // No entry for this exit
+                            saida: punch.time,
+                            horas: '00:00', // No duration for unmatched exit
+                            totalMinutes: 0,
+                            obs: dayObservations // Use day's observations for consistency
+                        });
                     }
-                    // If currentEntryTime is null, it's an unmatched exit, which we'll ignore for now as per request.
                 }
             }
 
