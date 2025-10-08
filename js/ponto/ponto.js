@@ -23,7 +23,9 @@ const LS_KEYS = {
     RECORDS: 'ponto_records',
     NEXT_USER_ID: 'ponto_nextUserId',
     NEXT_RECORD_ID: 'ponto_nextRecordId',
-    CURRENT_USER: 'ponto_user' // New key for the logged-in user object
+    CURRENT_USER: 'ponto_user', // New key for the logged-in user object
+    INITIAL_SETUP_DONE: 'ponto_initialSetupDone', // Flag to show initial admin message only once
+    ADMIN_CREATED_FIRST_TIME: 'ponto_adminCreatedFirstTime' // Flag to indicate admin was created initially
 };
 
 function getFromLS(key, defaultValue = []) {
@@ -79,6 +81,7 @@ function setupInitialData() {
         };
         saveToLS(LS_KEYS.USERS, [initialUser]);
         localStorage.setItem(LS_KEYS.NEXT_USER_ID, '2');
+        localStorage.setItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME, 'true'); // Set flag here
     }
 
     if (!localStorage.getItem(LS_KEYS.RECORDS)) {
@@ -104,6 +107,12 @@ var Ponto = {
         if (currentUser !== null) {
             $('#login-form').dialog('close');
             $('#login-form').remove();
+
+            // Check if initial admin message needs to be shown
+            if (localStorage.getItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME) === 'true' &&
+                localStorage.getItem(LS_KEYS.INITIAL_SETUP_DONE) !== 'true') {
+                Ponto._showInitialSetupModal();
+            }
 
             const header = $('<header/>');
             const menu = $('<ul/>');
@@ -463,7 +472,9 @@ var Ponto = {
                             saida: punch.time,
                             horas: formattedHours,
                             totalMinutes: durationMinutes,
-                            obs: combinedObs.join('; ') // Concatenate only for the pair
+                            obs: combinedObs.join('; '), // Concatenate only for the pair
+                            entradaId: currentEntryPunch.id, // Store IDs for editing
+                            saidaId: punch.id
                         });
                         currentEntryPunch = null; // Reset for next pair
                     } else {
@@ -474,7 +485,8 @@ var Ponto = {
                             saida: punch.time,
                             horas: '00:00', // No duration for unmatched exit
                             totalMinutes: 0,
-                            obs: punch.observacao // Use its own observation
+                            obs: punch.observacao, // Use its own observation
+                            saidaId: punch.id // Store ID for editing
                         });
                     }
                 }
@@ -488,7 +500,8 @@ var Ponto = {
                     saida: '',
                     horas: '00:00',
                     totalMinutes: 0,
-                    obs: currentEntryPunch.observacao // Use its own observation
+                    obs: currentEntryPunch.observacao, // Use its own observation
+                    entradaId: currentEntryPunch.id // Store ID for editing
                 });
             }
             
@@ -563,6 +576,21 @@ var Ponto = {
                     .append($('<td/>')
                         .addClass('horas')
                         .html(this.horas));
+
+                // Store IDs in data attributes for easy retrieval
+                if (this.entradaId) {
+                    $linha.data('entrada-id', this.entradaId);
+                }
+                if (this.saidaId) {
+                    $linha.data('saida-id', this.saidaId);
+                }
+
+                // Double-click to edit
+                $linha.dblclick(function() {
+                    const entradaId = $(this).data('entrada-id');
+                    const saidaId = $(this).data('saida-id');
+                    Ponto._openEditPunchModal(entradaId, saidaId);
+                });
 
                 // Determine if the daily target was met for this row's date
                 const totalMinutesForThisDay = dailyChartMinutes[this.data] || 0;
@@ -707,6 +735,173 @@ var Ponto = {
     },
 
     /**
+     * Formulário para edição de um registro de ponto.
+     */
+    _formEditPunch: function(punchData) {
+        const $fieldset = $('<fieldset/>');
+
+        // Date field (read-only)
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-date')
+            .html('Data')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-date')
+                .attr('id', 'edit-date')
+                .val(punchData.data)
+                .attr('readonly', 'readonly')
+                .addClass('text ui-widget-content ui-corner-all')));
+
+        // Time field
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-time')
+            .html('Hora')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-time')
+                .attr('id', 'edit-time')
+                .val(punchData.time)
+                .mask('99:99', { placeholder: "HH:MM" })
+                .addClass('text ui-widget-content ui-corner-all required')));
+
+        // Type field (radio buttons)
+        const $typeContainer = $('<div/>').addClass('radioContainer');
+        $typeContainer.append($('<input/>')
+            .attr('type', 'radio')
+            .attr('name', 'edit-type')
+            .attr('id', 'edit-type-entrada')
+            .val('entrada')
+            .attr('checked', punchData.tipo === 'entrada' ? 'checked' : false));
+        $typeContainer.append($('<label/>')
+            .attr('for', 'edit-type-entrada')
+            .html('Entrada'));
+
+        $typeContainer.append($('<input/>')
+            .attr('type', 'radio')
+            .attr('name', 'edit-type')
+            .attr('id', 'edit-type-saida')
+            .val('saida')
+            .attr('checked', punchData.tipo === 'saida' ? 'checked' : false));
+        $typeContainer.append($('<label/>')
+            .attr('for', 'edit-type-saida')
+            .html('Saída'));
+
+        $fieldset.append($('<label/>').html('Tipo').append($typeContainer));
+
+        // Observation field
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-observacao')
+            .html('Observação')
+            .append($('<textarea/>')
+                .attr('name', 'edit-observacao')
+                .attr('id', 'edit-observacao')
+                .val(punchData.observacao)
+                .addClass('text ui-widget-content ui-corner-all')));
+
+        // Hidden ID field
+        $fieldset.append($('<input/>')
+            .attr('type', 'hidden')
+            .attr('name', 'edit-id')
+            .attr('id', 'edit-id')
+            .val(punchData.id));
+
+        return $('<form/>').append($fieldset);
+    },
+
+    /**
+     * Abre o modal para edição de um registro de ponto.
+     */
+    _openEditPunchModal: function(entradaId, saidaId) {
+        const allRecords = getFromLS(LS_KEYS.RECORDS);
+        let punchToEdit = null;
+        let isPaired = false;
+
+        if (entradaId && saidaId) {
+            // This is a paired entry/exit. We'll edit the exit punch.
+            punchToEdit = allRecords.find(r => r.id === saidaId);
+            isPaired = true;
+        } else if (entradaId) {
+            // Unmatched entry
+            punchToEdit = allRecords.find(r => r.id === entradaId);
+        } else if (saidaId) {
+            // Unmatched exit
+            punchToEdit = allRecords.find(r => r.id === saidaId);
+        }
+
+        if (!punchToEdit) {
+            Ponto._showErro('Registro de ponto não encontrado.');
+            return;
+        }
+
+        $('<div/>')
+            .attr('id', 'edit-punch-modal')
+            .appendTo($('#Ponto'));
+
+        $(Ponto._formEditPunch(punchToEdit)).appendTo($('#edit-punch-modal'));
+
+        $("#edit-punch-modal").dialog({
+            title: 'Editar Registro de Ponto',
+            width: 350,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Salvar": function() {
+                    const punchId = $('#edit-punch-modal #edit-id').val();
+                    const newTime = $('#edit-punch-modal #edit-time').val();
+                    const newType = $('#edit-punch-modal input[name="edit-type"]:checked').val();
+                    const newObs = $('#edit-punch-modal #edit-observacao').val();
+
+                    if (!newTime.match(/^\d{2}:\d{2}$/)) {
+                        Ponto._showErro('Formato de hora inválido. Use HH:MM.');
+                        return;
+                    }
+
+                    let updated = false;
+                    const updatedRecords = allRecords.map(record => {
+                        if (record.id === punchId) {
+                            updated = true;
+                            return {
+                                ...record,
+                                time: newTime,
+                                tipo: newType,
+                                observacao: newObs
+                            };
+                        }
+                        return record;
+                    });
+
+                    if (updated) {
+                        saveToLS(LS_KEYS.RECORDS, updatedRecords);
+                        $(this).dialog('close');
+                        Ponto.relatorio(); // Refresh report
+                        Ponto._showMsg('Registro atualizado com sucesso!');
+                    } else {
+                        Ponto._showErro('Falha ao atualizar o registro.');
+                    }
+                },
+                "Excluir": function() {
+                    const punchId = $('#edit-punch-modal #edit-id').val();
+                    const confirmDelete = confirm('Tem certeza que deseja excluir este registro de ponto?');
+
+                    if (confirmDelete) {
+                        const filteredRecords = allRecords.filter(record => record.id !== punchId);
+                        saveToLS(LS_KEYS.RECORDS, filteredRecords);
+                        $(this).dialog('close');
+                        Ponto.relatorio(); // Refresh report
+                        Ponto._showMsg('Registro excluído com sucesso!');
+                    }
+                },
+                "Fechar": function() {
+                    $(this).dialog('close');
+                }
+            },
+            close: function() {
+                $("#edit-punch-modal").remove();
+            }
+        });
+    },
+
+    /**
      * Remove uma lista de usuários do banco
      */
     _removerUsuario: function(lista) {
@@ -815,6 +1010,38 @@ var Ponto = {
 
                         $('#message').remove();
                     }
+                }
+            });
+    },
+
+    /**
+     * Exibe um modal informando sobre o usuário padrão admin/admin.
+     * Este modal é exibido apenas no primeiro acesso após a criação do usuário padrão.
+     */
+    _showInitialSetupModal: function() {
+        $('<div/>')
+            .attr('id', 'initial-setup-modal')
+            .html('<p>Bem-vindo ao Ponto Eletrônico!</p>' +
+                  '<p>Um usuário padrão foi criado para você:</p>' +
+                  '<p><strong>Login:</strong> admin</p>' +
+                  '<p><strong>Senha:</strong> admin</p>' +
+                  '<p>Por favor, acesse as "Preferências" para alterar sua senha e outros dados.</p>')
+            .appendTo($('#Ponto'))
+            .dialog({
+                title: 'Primeiro Acesso',
+                width: 400,
+                modal: true,
+                resizable: false,
+                buttons: {
+                    "Entendi": function() {
+                        $(this).dialog('close');
+                        localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown
+                        $("#initial-setup-modal").remove();
+                    }
+                },
+                close: function() {
+                    localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown even if closed
+                    $("#initial-setup-modal").remove();
                 }
             });
     },
