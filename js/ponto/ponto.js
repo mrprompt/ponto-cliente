@@ -214,7 +214,7 @@ var Ponto = {
                 .append($('<input/>')
                     .attr('type', 'text')
                     .attr('name', 'usuario')
-                    .attr('id', 'usuario')
+                    .attr('id', 'usuario') // Corrected ID from 'id' to 'usuario'
                     .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
                 .attr('for', 'email')
@@ -522,6 +522,9 @@ var Ponto = {
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
         if (finalProcessedRecords.length !== 0) {
+            const horas_dia_config = parseInt(localStorage.getItem('horas_dia'), 10);
+            const intExpediente_config = horas_dia_config * 60; // Daily target in minutes
+
             $.each(finalProcessedRecords, function() {
                 const $linha = $('<tr/>')
                     .appendTo($('#tbRelatorio tbody'));
@@ -539,36 +542,26 @@ var Ponto = {
                         .addClass('horas')
                         .html(this.horas));
 
+                // Determine if the daily target was met for this row's date
+                const totalMinutesForThisDay = dailyChartMinutes[this.data] || 0;
+
+                if (totalMinutesForThisDay < intExpediente_config) {
+                    // Daily target NOT met, apply light red background
+                    $linha.addClass('expedienteMenor');
+                } else {
+                    // Daily target MET, apply observation-based styling if any
+                    if (this.obs && this.obs.length !== 0) {
+                        $linha.addClass('comObs');
+                    }
+                }
+
+                // Always add tinyTips if there's an observation
                 if (this.obs && this.obs.length !== 0) {
-                    $linha.attr('title', this.obs)
-                        .addClass('comObs')
-                        .tinyTips('title');
-                }
-
-                // Add classes for visual feedback based on daily hours
-                const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
-                const intExpediente = horas_dia * 60;
-                // Apply 'expedienteMenor' class based on the day's total minutes, not individual row's duration
-                // This logic will be applied after all rows are rendered, based on dailyChartMinutes
-            });
-
-            // After rendering all rows, apply 'expedienteMenor' class based on daily totals
-            Object.keys(dailyChartMinutes).forEach(dayDate => {
-                const totalMinutesForDay = dailyChartMinutes[dayDate];
-                const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
-                const intExpediente = horas_dia * 60;
-                
-                // Find all rows for this day and apply class if total minutes are less than target
-                if (totalMinutesForDay < intExpediente) {
-                    $(`#tbRelatorio tbody tr:has(td.data:contains('${dayDate}'))`).addClass('expedienteMenor');
+                    $linha.attr('title', this.obs).tinyTips('title');
                 }
             });
-
 
             // --- Chart Data Aggregation ---
-            const horas_dia_config = parseInt(localStorage.getItem('horas_dia'), 10);
-            const intExpediente_config = horas_dia_config * 60; // Daily target in minutes
-
             let intExpedienteCheio = 0;
             let intExpedienteIncompleto = 0;
             const arrExpedienteHoras = {}; // Stores total hours per day (in hours)
