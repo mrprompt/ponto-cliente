@@ -214,7 +214,7 @@ var Ponto = {
                 .append($('<input/>')
                     .attr('type', 'text')
                     .attr('name', 'usuario')
-                    .attr('id', 'id')
+                    .attr('id', 'usuario')
                     .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
                 .attr('for', 'email')
@@ -396,11 +396,12 @@ var Ponto = {
             }
         });
 
-        const finalProcessedRecords = []; // This will be the flat array of all rows for the month
+        let finalProcessedRecords = []; // Changed to let for re-assignment after sorting
         const dailyChartMinutes = {}; // Stores total minutes worked per day for charts
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
-        Object.keys(dailyGroupedPunches).sort().reverse().forEach(date => { // Invertendo a ordem dos dias aqui
+        // Process days in ascending order initially to build rows correctly
+        Object.keys(dailyGroupedPunches).sort().forEach(date => {
             const dayData = dailyGroupedPunches[date];
             const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
             const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
@@ -472,6 +473,26 @@ var Ponto = {
             
             // Store dayTotalMinutesWorked for chart aggregation
             dailyChartMinutes[date] = dayTotalMinutesWorked;
+        });
+
+        // --- Global Sort for finalProcessedRecords (most recent to oldest) ---
+        finalProcessedRecords.sort((a, b) => {
+            // Compare dates first (descending)
+            const dateComparison = b.data.localeCompare(a.data);
+            if (dateComparison !== 0) {
+                return dateComparison;
+            }
+
+            // If dates are equal, compare times (descending)
+            // Use exit time if available, otherwise entry time
+            const timeA = a.saida || a.entrada;
+            const timeB = b.saida || b.entrada;
+
+            if (!timeA && !timeB) return 0; // Both have no time
+            if (!timeA) return 1; // a has no time, b comes first
+            if (!timeB) return -1; // b has no time, a comes first
+
+            return Ponto._timeToMinutes(timeB) - Ponto._timeToMinutes(timeA);
         });
 
         // Create new report container
