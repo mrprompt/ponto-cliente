@@ -135,6 +135,17 @@ var Ponto = {
                                 })
                             )
                         )
+                        // Adiciona o novo menu 'Ferramentas'
+                        .append($('<li/>')
+                            .append($('<a/>')
+                                .html('Ferramentas')
+                                .attr('href', 'javascript:;')
+                                .button()
+                                .click(function() {
+                                    Ponto.showToolsDialog();
+                                })
+                            )
+                        )
                     )
                 )
                 .insertBefore($('#Ponto'));
@@ -1515,5 +1526,120 @@ var Ponto = {
                 $(".widget-usuarios").remove();
             }
         });
+    },
+
+    /**
+     * Abre o diálogo de Ferramentas (Importar/Exportar)
+     */
+    showToolsDialog: function() {
+        $('<div/>')
+            .attr('id', 'tools-dialog')
+            .html('Selecione uma opção:')
+            .appendTo($('#Ponto'))
+            .dialog({
+                title: 'Ferramentas',
+                width: 300,
+                modal: true,
+                resizable: false,
+                buttons: {
+                    "Exportar": function() {
+                        Ponto.exportData();
+                        $(this).dialog('close');
+                    },
+                    "Importar": function() {
+                        Ponto.importData();
+                        $(this).dialog('close');
+                    },
+                    "Fechar": function() {
+                        $(this).dialog('close');
+                    }
+                },
+                close: function() {
+                    $("#tools-dialog").remove();
+                }
+            });
+    },
+
+    /**
+     * Exporta todos os dados do LocalStorage para um arquivo JSON.
+     */
+    exportData: function() {
+        // Coleta todos os dados relevantes do LocalStorage
+        const dataToExport = {};
+        for (const key in LS_KEYS) {
+            const lsKey = LS_KEYS[key];
+            const value = localStorage.getItem(lsKey);
+            try {
+                // Tenta parsear para JSON se for um objeto/array, caso contrário, mantém como string
+                dataToExport[lsKey] = value ? JSON.parse(value) : null;
+            } catch (e) {
+                // Se não for JSON válido, armazena como string (ex: nextId)
+                dataToExport[lsKey] = value;
+            }
+        }
+
+        const jsonString = JSON.stringify(dataToExport, null, 2); // Formata com indentação para legibilidade
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ponto_eletronico_data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        Ponto._showMsg('Dados exportados com sucesso!');
+    },
+
+    /**
+     * Importa dados de um arquivo JSON e substitui o LocalStorage.
+     */
+    importData: function() {
+        const fileInput = $('<input type="file" accept=".json" style="display: none;">');
+        fileInput.appendTo('body');
+
+        fileInput.on('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                Ponto._showErro('Nenhum arquivo selecionado.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+
+                    // Validação básica da estrutura do JSON importado
+                    const requiredKeys = Object.values(LS_KEYS);
+                    const missingKeys = requiredKeys.filter(key => importedData[key] === undefined);
+
+                    if (missingKeys.length > 0) {
+                        Ponto._showErro('O arquivo JSON importado não possui a estrutura esperada. Chaves ausentes: ' + missingKeys.join(', '));
+                        return;
+                    }
+
+                    // Substitui os dados no LocalStorage
+                    for (const key in LS_KEYS) {
+                        const lsKey = LS_KEYS[key];
+                        // Salva o valor diretamente, pois já foi parseado/validado
+                        localStorage.setItem(lsKey, JSON.stringify(importedData[lsKey]));
+                    }
+
+                    Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
+                    // Reinicia a aplicação para carregar os novos dados
+                    Ponto.init();
+                } catch (error) {
+                    Ponto._showErro('Erro ao ler ou parsear o arquivo JSON: ' + error.message);
+                } finally {
+                    fileInput.remove(); // Remove o input de arquivo após o uso
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        fileInput.click(); // Abre o seletor de arquivos
     }
 };
