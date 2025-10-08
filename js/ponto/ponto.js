@@ -1600,7 +1600,8 @@ var Ponto = {
         const fileInput = $('<input type="file" accept=".json" style="display: none;">');
         fileInput.appendTo('body');
 
-        fileInput.on('change', function(event) {
+        // Usar .bind() em vez de .on() para compatibilidade com jQuery 1.5.1
+        fileInput.bind('change', function(event) {
             const file = event.target.files[0];
             if (!file) {
                 Ponto._showErro('Nenhum arquivo selecionado.');
