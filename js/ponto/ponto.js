@@ -367,15 +367,66 @@ var Ponto = {
         const filterMonth = strData.substring(0, 7); // YYYY-MM
 
         // Filter all records for the current user and selected month
-        const retorno = allRecords.filter(record => {
+        const filteredRecords = allRecords.filter(record => {
             const recordMonth = record.data.substring(0, 7);
             return record.usuarioId === currentUserId && recordMonth === filterMonth;
-        }).sort((a, b) => {
-            // Sort by date (newest first), then by time (newest first)
-            const dateComparison = b.data.localeCompare(a.data); // Reverse for newest first
-            if (dateComparison !== 0) return dateComparison;
-            return b.time.localeCompare(a.time); // Reverse for newest first
         });
+
+        // Aggregate records by day for display and chart data
+        const dailyAggregatedData = {};
+        filteredRecords.forEach(record => {
+            const date = record.data;
+            if (!dailyAggregatedData[date]) {
+                dailyAggregatedData[date] = {
+                    punches: [],
+                    obs: []
+                };
+            }
+            dailyAggregatedData[date].punches.push(record);
+            if (record.observacao) {
+                dailyAggregatedData[date].obs.push(record.observacao);
+            }
+        });
+
+        const processedDailyRecords = Object.keys(dailyAggregatedData).map(date => {
+            const dayData = dailyAggregatedData[date];
+            const punches = dayData.punches.sort((a, b) => a.time.localeCompare(b.time)); // Ensure punches are sorted by time
+
+            let entradaTime = '';
+            let saidaTime = '';
+            let totalMinutesWorked = 0;
+            let currentEntry = null;
+
+            for (const punch of punches) {
+                if (punch.tipo === 'entrada') {
+                    if (!entradaTime) { // Capture the first entry for display
+                        entradaTime = punch.time;
+                    }
+                    currentEntry = punch.time; // Keep track of the most recent entry for pairing
+                } else if (punch.tipo === 'saida') {
+                    saidaTime = punch.time; // Capture the last exit for display
+                    if (currentEntry) {
+                        const [entryH, entryM] = currentEntry.split(':').map(Number);
+                        const [exitH, exitM] = punch.time.split(':').map(Number);
+                        totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                        currentEntry = null; // Reset after pairing
+                    }
+                }
+            }
+
+            const hours = Math.floor(totalMinutesWorked / 60);
+            const minutes = totalMinutesWorked % 60;
+            const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+            return {
+                data: date,
+                entrada: entradaTime,
+                saida: saidaTime,
+                horas: formattedHours,
+                totalMinutes: totalMinutesWorked, // Keep total minutes for chart calculations
+                obs: dayData.obs.join('; ') // Combine all observations for the day
+            };
+        }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()); // Sort by date ascending for display
 
         // Create new report container
         $('<div/>').attr('class', 'widget-relatorio')
@@ -384,18 +435,21 @@ var Ponto = {
                 .attr('id', 'tbRelatorio'))
             .appendTo($('#Ponto'));
 
-        // Create table headers for individual punches
+        // Create table headers for grouped punches
         $('<thead/>')
             .append($('<tr/>')
                 .append($('<th/>')
                     .addClass('data')
                     .html('Data'))
                 .append($('<th/>')
-                    .addClass('hora')
-                    .html('Hora'))
+                    .addClass('entrada')
+                    .html('Entrada'))
                 .append($('<th/>')
-                    .addClass('tipo')
-                    .html('Tipo'))
+                    .addClass('saida')
+                    .html('Saída'))
+                .append($('<th/>')
+                    .addClass('horas')
+                    .html('Horas'))
                 .append($('<th/>')
                     .addClass('observacao')
                     .html('Observação')))
@@ -404,85 +458,58 @@ var Ponto = {
 
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
-        if (retorno.length !== 0) {
-            $.each(retorno, function() {
-                const $linha = $('<tr/>') // Changed var to const
+        if (processedDailyRecords.length !== 0) {
+            $.each(processedDailyRecords, function() {
+                const $linha = $('<tr/>')
                     .appendTo($('#tbRelatorio tbody'));
 
                 $linha.append($('<td/>')
                         .addClass('data')
                         .html(this.data))
                     .append($('<td/>')
-                        .addClass('hora')
-                        .html(this.time))
+                        .addClass('entrada')
+                        .html(this.entrada))
                     .append($('<td/>')
-                        .addClass('tipo')
-                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída'))
+                        .addClass('saida')
+                        .html(this.saida))
+                    .append($('<td/>')
+                        .addClass('horas')
+                        .html(this.horas))
                     .append($('<td/>')
                         .addClass('observacao')
-                        .html(this.observacao || '')); // Display empty string if no observation
+                        .html(this.obs));
 
-                if (this.observacao && this.observacao.length !== 0) {
-                    $linha.attr('title', this.observacao)
+                if (this.obs && this.obs.length !== 0) {
+                    $linha.attr('title', this.obs)
                         .addClass('comObs')
                         .tinyTips('title');
                 }
-            });
 
-            // --- Data Aggregation for Charts (re-introduced) ---
-            const dailyAggregatedRecords = {};
-            retorno.forEach(record => {
-                const date = record.data;
-                if (!dailyAggregatedRecords[date]) {
-                    dailyAggregatedRecords[date] = {
-                        punches: [],
-                        obs: []
-                    };
-                }
-                dailyAggregatedRecords[date].punches.push({ time: record.time, tipo: record.tipo });
-                if (record.observacao) {
-                    dailyAggregatedRecords[date].obs.push(record.observacao);
+                // Add classes for visual feedback based on daily hours
+                const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
+                const intExpediente = horas_dia * 60;
+                if (this.totalMinutes < intExpediente && this.saida) { // Only mark if there's an exit punch
+                    $linha.addClass('expedienteMenor');
                 }
             });
 
-            const processedForCharts = Object.keys(dailyAggregatedRecords).map(date => {
-                const dayRec = dailyAggregatedRecords[date];
-                const punches = dayRec.punches.sort((a, b) => a.time.localeCompare(b.time));
+            // --- Chart Data Aggregation ---
+            const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
+            const intExpediente = horas_dia * 60;
+            let intExpedienteCheio = 0;
+            let intExpedienteIncompleto = 0;
+            const arrExpedienteHoras = {}; // Stores total hours per day (in hours)
+            let intHorasTotal = 0; // Total hours for the month (in hours)
 
-                let totalMinutesWorked = 0;
-                let currentEntryTime = null;
-                for (const punch of punches) {
-                    if (punch.tipo === 'entrada') {
-                        currentEntryTime = punch.time;
-                    } else if (punch.tipo === 'saida' && currentEntryTime) {
-                        const [entryH, entryM] = currentEntryTime.split(':').map(Number);
-                        const [exitH, exitM] = punch.time.split(':').map(Number);
-                        totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
-                        currentEntryTime = null;
-                    }
-                }
-                return {
-                    data: date,
-                    totalMinutes: totalMinutesWorked
-                };
-            }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-
-            const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10); // Changed var to const
-            const intExpediente = horas_dia * 60; // Changed var to const
-            let intExpedienteCheio = 0; // Changed var to let
-            let intExpedienteIncompleto = 0; // Changed var to let
-            const arrExpedienteHoras = {}; // Changed var to const
-            let intHorasTotal = 0; // Changed var to let
-
-            processedForCharts.forEach(dayData => {
+            processedDailyRecords.forEach(dayData => {
                 const day = parseInt(dayData.data.substr(8, 2), 10);
                 const totalHours = dayData.totalMinutes / 60;
                 arrExpedienteHoras[day] = totalHours;
-                intHorasTotal += totalHours; // Accumulate total hours for the month
-                
-                if (dayData.totalMinutes < intExpediente) {
+                intHorasTotal += totalHours;
+
+                if (dayData.totalMinutes < intExpediente && dayData.saida) { // Only count as incomplete if there's an exit
                     intExpedienteIncompleto++;
-                } else {
+                } else if (dayData.totalMinutes >= intExpediente) {
                     intExpedienteCheio++;
                 }
             });
@@ -532,14 +559,14 @@ var Ponto = {
             });
 
             // Gráfico barras - Meta mensal de horas
-            const arrDiasTrabalhoMeta = localStorage.getItem('dias_trabalho').split(','); // Renamed to avoid conflict
-            const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text()); // Changed var to const
-            let intDiasMeta = 0; // Changed var to let
+            const arrDiasTrabalhoMeta = localStorage.getItem('dias_trabalho').split(',');
+            const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
+            let intDiasMeta = 0;
 
-            const arrDataSplit = strData.split('-'); // Renamed to avoid conflict
-            let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1); // Changed var to let
+            const arrDataSplit = strData.split('-');
+            let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1);
 
-            for (let i = 1; i <= intDiasMesLastDay; i++) { // Changed var to let
+            for (let i = 1; i <= intDiasMesLastDay; i++) {
                 if ($.inArray(objDataLoop.getDay().toString(), arrDiasTrabalhoMeta) >= 0) {
                     intDiasMeta++;
                 }
@@ -554,7 +581,7 @@ var Ponto = {
                     labels: ['Meta Mensal'],
                     datasets: [
                         {
-                            label: 'Cumpridas (' + intHorasTotal.toFixed(2) + ')', // Use toFixed for display
+                            label: 'Cumpridas (' + intHorasTotal.toFixed(2) + ')',
                             data: [intHorasTotal],
                             backgroundColor: '#DDD6F5'
                         },
@@ -576,7 +603,7 @@ var Ponto = {
         } else {
             $('<tr/>')
                 .append(
-                    $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados')
+                    $('<td/>').attr('colspan', '5').addClass('noResult').html('Sem dados') // Changed colspan to 5
                 ).appendTo($('#tbRelatorio tbody'));
         }
     },

@@ -182,19 +182,19 @@ nav .ui-button {
     display: block;
 }
 .widget-relatorio table .data {
-    width: 77px;
+    width: 60px; /* Adjusted width */
 }
 .widget-relatorio table .entrada {
-    width: 75px;
+    width: 55px; /* Adjusted width */
 }
 .widget-relatorio table .saida {
-    width: 75px;
+    width: 55px; /* Adjusted width */
 }
 .widget-relatorio table .horas {
-    width: 75px;
+    width: 55px; /* Adjusted width */
 }
 .widget-relatorio table .observacao {
-    width: 138px;
+    width: 70px; /* Adjusted width */
 }
 .widget-relatorio table thead {
     margin-bottom: 2px;
