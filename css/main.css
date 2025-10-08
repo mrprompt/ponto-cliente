@@ -182,20 +182,18 @@ nav .ui-button {
     display: block;
 }
 .widget-relatorio table .data {
-    width: 60px; /* Adjusted width */
+    width: 77px; /* Adjusted width */
 }
 .widget-relatorio table .entrada {
-    width: 55px; /* Adjusted width */
+    width: 75px; /* Adjusted width */
 }
 .widget-relatorio table .saida {
-    width: 55px; /* Adjusted width */
+    width: 75px; /* Adjusted width */
 }
 .widget-relatorio table .horas {
-    width: 55px; /* Adjusted width */
+    width: 75px; /* Adjusted width */
 }
-.widget-relatorio table .observacao {
-    width: 70px; /* Adjusted width */
-}
+/* Removed .observacao width as it's no longer in the table */
 .widget-relatorio table thead {
     margin-bottom: 2px;
 }

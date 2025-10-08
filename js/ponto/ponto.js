@@ -449,10 +449,7 @@ var Ponto = {
                     .html('Saída'))
                 .append($('<th/>')
                     .addClass('horas')
-                    .html('Horas'))
-                .append($('<th/>')
-                    .addClass('observacao')
-                    .html('Observação')))
+                    .html('Horas')))
             .addClass('ui-widget-header ui-helper-clearfix ui-corner-all')
             .appendTo($('#tbRelatorio'));
 
@@ -474,10 +471,7 @@ var Ponto = {
                         .html(this.saida))
                     .append($('<td/>')
                         .addClass('horas')
-                        .html(this.horas))
-                    .append($('<td/>')
-                        .addClass('observacao')
-                        .html(this.obs));
+                        .html(this.horas));
 
                 if (this.obs && this.obs.length !== 0) {
                     $linha.attr('title', this.obs)
@@ -603,7 +597,7 @@ var Ponto = {
         } else {
             $('<tr/>')
                 .append(
-                    $('<td/>').attr('colspan', '5').addClass('noResult').html('Sem dados') // Changed colspan to 5
+                    $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados') // Changed colspan to 4
                 ).appendTo($('#tbRelatorio tbody'));
         }
     },
