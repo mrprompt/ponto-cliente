@@ -139,7 +139,6 @@ var Ponto = {
                                 })
                             )
                         )
-                        // Adiciona o novo menu 'Ferramentas'
                         .append($('<li/>')
                             .append($('<a/>')
                                 .html('Ferramentas')
@@ -153,20 +152,6 @@ var Ponto = {
                     )
                 )
                 .insertBefore($('#Ponto'));
-
-            if (currentUser.owner == null) { // Check if current user is an owner (owner is null for top-level admin)
-                menu
-                    .append($('<li/>')
-                        .append($('<a/>')
-                            .html('Usuários')
-                            .attr('href', 'javascript:;')
-                            .button()
-                            .click(function() {
-                                Ponto.usuarios();
-                            })
-                        )
-                    )
-            }
 
             menu.append($('<li/>')
                 .append($('<a/>')
@@ -1823,6 +1808,17 @@ var Ponto = {
             .attr('id', 'tools-dialog')
             .appendTo($('#Ponto'));
 
+        const currentUser = getCurrentUser(); // Get the current logged-in user
+        if (currentUser.owner == null) { // Check if current user is an owner (owner is null for top-level admin)
+            $('<buton/>')
+                .text('Usuários')
+                .button()
+                .click(function() {
+                    Ponto.usuarios();
+                })
+                .appendTo($toolsDialog);
+        }
+
         // Adiciona um botão para Exportar
         $('<button/>')
             .text('Exportar Dados')
@@ -1847,7 +1843,7 @@ var Ponto = {
 
         $toolsDialog.dialog({
             title: 'Ferramentas',
-            width: 300,
+            width: 375,
             modal: true,
             resizable: false,
             buttons: {
