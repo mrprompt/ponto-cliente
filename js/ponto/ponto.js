@@ -1510,7 +1510,7 @@ var Ponto = {
                             senha: hashPassword($('#cadastro-form form #senha').val()), // Hash the password
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
-                            dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]']:checked').map(function() { return $(this).val(); }).get().join(','),
+                            dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),
                             owner: null // Top-level user
                         };
 
