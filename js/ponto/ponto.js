@@ -401,7 +401,7 @@ var Ponto = {
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
         Object.keys(dailyGroupedPunches).sort().forEach(date => {
-            // Sort punches chronologically using the helper function
+            const dayData = dailyGroupedPunches[date]; // Correctly define dayData here
             const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
             const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
 
@@ -621,7 +621,7 @@ var Ponto = {
             let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1);
 
             for (let i = 1; i <= intDiasMesLastDay; i++) {
-                if ($.inArray(objDataLoop.getDay().toString(), arrDataSplit) >= 0) { // Changed arrDiasTrabalhoMeta to arrDataSplit
+                if ($.inArray(objDataLoop.getDay().toString(), arrDiasTrabalhoMeta) >= 0) {
                     intDiasMeta++;
                 }
                 objDataLoop.setDate(objDataLoop.getDate() + 1);
