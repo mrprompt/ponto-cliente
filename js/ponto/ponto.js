@@ -1549,21 +1549,16 @@ var Ponto = {
             })
             .appendTo($toolsDialog);
 
-        // Adiciona um input de arquivo para Importar
-        const $importLabel = $('<label/>')
-            .text('Importar Dados:')
-            .css({ 'display': 'block', 'margin-top': '10px' })
+        // Adiciona um botão para Importar
+        $('<button/>')
+            .text('Importar Dados')
+            .button()
+            .click(function() {
+                console.log('Importar button clicked');
+                Ponto._showImportDataModal();
+                $toolsDialog.dialog('close'); // Fecha o modal de ferramentas ao abrir o de importação
+            })
             .appendTo($toolsDialog);
-
-        const $fileInput = $('<input type="file" accept=".json" id="importFileInput">')
-            .appendTo($importLabel);
-
-        // Anexa o evento change diretamente ao input de arquivo
-        $fileInput.bind('change', function(event) {
-            console.log('File input change event fired.');
-            Ponto.handleImportFile(event.target.files[0]);
-            $toolsDialog.dialog('close'); // Fecha o diálogo após a seleção do arquivo
-        });
 
         $toolsDialog.dialog({
             title: 'Ferramentas',
@@ -1684,6 +1679,52 @@ var Ponto = {
         // Chama a nova função para exibir o modal com o JSON
         Ponto._showExportDataModal(jsonString);
         console.log('Export data process finished, modal shown.'); // Log para depuração
+    },
+
+    /**
+     * Exibe um modal para importação de dados.
+     */
+    _showImportDataModal: function() {
+        const $importModal = $('<div/>')
+            .attr('id', 'import-data-modal')
+            .appendTo($('#Ponto'));
+
+        $importModal.append(
+            $('<p/>').html('Selecione um arquivo JSON (.json) contendo os dados de backup para importar. <br/> <b>Atenção:</b> Isso substituirá todos os dados existentes no sistema.')
+        );
+
+        const $fileInput = $('<input type="file" accept=".json" id="importFileInput">')
+            .appendTo($importModal);
+
+        $importModal.dialog({
+            title: 'Importar Dados',
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: [{
+                text: 'Importar',
+                icons: {
+                    primary: 'ui-icon-arrowreturnthick-1-s'
+                },
+                click: function() {
+                    const file = $('#importFileInput')[0].files[0];
+                    if (file) {
+                        Ponto.handleImportFile(file);
+                        $(this).dialog('close');
+                    } else {
+                        Ponto._showErro('Por favor, selecione um arquivo para importar.');
+                    }
+                }
+            }, {
+                text: 'Fechar',
+                click: function() {
+                    $(this).dialog('close');
+                }
+            }],
+            close: function() {
+                $("#import-data-modal").remove();
+            }
+        });
     },
 
     /**
