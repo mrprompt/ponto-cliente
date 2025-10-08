@@ -1534,36 +1534,53 @@ var Ponto = {
      */
     showToolsDialog: function() {
         console.log('showToolsDialog called'); // Log para depuração
-        $('<div/>')
+        const $toolsDialog = $('<div/>')
             .attr('id', 'tools-dialog')
-            .html('Selecione uma opção:')
-            .appendTo($('#Ponto'))
-            .dialog({
-                title: 'Ferramentas',
-                width: 300,
-                modal: true,
-                resizable: false,
-                buttons: {
-                    "Exportar": function() {
-                        console.log('Exportar button clicked'); // Log para depuração
-                        Ponto.exportData();
-                        $(this).dialog('close');
-                    },
-                    "Importar": function() {
-                        console.log('Importar button clicked'); // Log para depuração
-                        Ponto.importData();
-                        $(this).dialog('close');
-                    },
-                    "Fechar": function() {
-                        console.log('Fechar button clicked'); // Log para depuração
-                        $(this).dialog('close');
-                    }
-                },
-                close: function() {
-                    console.log('Tools dialog closed'); // Log para depuração
-                    $("#tools-dialog").remove();
+            .appendTo($('#Ponto'));
+
+        // Adiciona um botão para Exportar
+        $('<button/>')
+            .text('Exportar Dados')
+            .button()
+            .click(function() {
+                console.log('Exportar button clicked');
+                Ponto.exportData();
+                $toolsDialog.dialog('close');
+            })
+            .appendTo($toolsDialog);
+
+        // Adiciona um input de arquivo para Importar
+        const $importLabel = $('<label/>')
+            .text('Importar Dados:')
+            .css({ 'display': 'block', 'margin-top': '10px' })
+            .appendTo($toolsDialog);
+
+        const $fileInput = $('<input type="file" accept=".json" id="importFileInput">')
+            .appendTo($importLabel);
+
+        // Anexa o evento change diretamente ao input de arquivo
+        $fileInput.bind('change', function(event) {
+            console.log('File input change event fired.');
+            Ponto.handleImportFile(event.target.files[0]);
+            $toolsDialog.dialog('close'); // Fecha o diálogo após a seleção do arquivo
+        });
+
+        $toolsDialog.dialog({
+            title: 'Ferramentas',
+            width: 300,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Fechar": function() {
+                    console.log('Fechar button clicked');
+                    $(this).dialog('close');
                 }
-            });
+            },
+            close: function() {
+                console.log('Tools dialog closed');
+                $("#tools-dialog").remove();
+            }
+        });
     },
 
     /**
@@ -1586,6 +1603,13 @@ var Ponto = {
         }
 
         const jsonString = JSON.stringify(dataToExport, null, 2); // Formata com indentação para legibilidade
+        console.log('JSON string to export:', jsonString); // Log do conteúdo JSON
+
+        if (!jsonString || jsonString === '{}') {
+            Ponto._showErro('Não há dados para exportar.');
+            return;
+        }
+
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
 
@@ -1602,60 +1626,47 @@ var Ponto = {
     },
 
     /**
-     * Importa dados de um arquivo JSON e substitui o LocalStorage.
+     * Lida com o arquivo selecionado para importação.
      */
-    importData: function() {
-        console.log('Ponto.importData called'); // Log para depuração
-        const fileInput = $('<input type="file" accept=".json" style="display: none;">');
-        fileInput.appendTo('body');
+    handleImportFile: function(file) {
+        console.log('Ponto.handleImportFile called with file:', file); // Log para depuração
+        if (!file) {
+            Ponto._showErro('Nenhum arquivo selecionado.');
+            console.log('No file selected.'); // Log para depuração
+            return;
+        }
 
-        // Usar .bind() em vez de .on() para compatibilidade com jQuery 1.5.1
-        fileInput.bind('change', function(event) {
-            console.log('File input change event fired.'); // Log para depuração
-            const file = event.target.files[0];
-            if (!file) {
-                Ponto._showErro('Nenhum arquivo selecionado.');
-                console.log('No file selected.'); // Log para depuração
-                return;
-            }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
+                // Validação básica da estrutura do JSON importado
+                const requiredKeys = Object.values(LS_KEYS);
+                const missingKeys = requiredKeys.filter(key => importedData[key] === undefined);
 
-                    // Validação básica da estrutura do JSON importado
-                    const requiredKeys = Object.values(LS_KEYS);
-                    const missingKeys = requiredKeys.filter(key => importedData[key] === undefined);
-
-                    if (missingKeys.length > 0) {
-                        Ponto._showErro('O arquivo JSON importado não possui a estrutura esperada. Chaves ausentes: ' + missingKeys.join(', '));
-                        console.log('Imported JSON missing keys:', missingKeys); // Log para depuração
-                        return;
-                    }
-
-                    // Substitui os dados no LocalStorage
-                    for (const key in LS_KEYS) {
-                        const lsKey = LS_KEYS[key];
-                        // Salva o valor diretamente, pois já foi parseado/validado
-                        localStorage.setItem(lsKey, JSON.stringify(importedData[lsKey]));
-                    }
-
-                    Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
-                    console.log('Import data process finished, message shown.'); // Log para depuração
-                    // Reinicia a aplicação para carregar os novos dados
-                    Ponto.init();
-                } catch (error) {
-                    Ponto._showErro('Erro ao ler ou parsear o arquivo JSON: ' + error.message);
-                    console.error('Error reading or parsing JSON file:', error); // Log para depuração
-                } finally {
-                    fileInput.remove(); // Remove o input de arquivo após o uso
+                if (missingKeys.length > 0) {
+                    Ponto._showErro('O arquivo JSON importado não possui a estrutura esperada. Chaves ausentes: ' + missingKeys.join(', '));
+                    console.log('Imported JSON missing keys:', missingKeys); // Log para depuração
+                    return;
                 }
-            };
-            reader.readAsText(file);
-        });
 
-        fileInput.click(); // Abre o seletor de arquivos
-        console.log('File input click triggered.'); // Log para depuração
+                // Substitui os dados no LocalStorage
+                for (const key in LS_KEYS) {
+                    const lsKey = LS_KEYS[key];
+                    // Salva o valor diretamente, pois já foi parseado/validado
+                    localStorage.setItem(lsKey, JSON.stringify(importedData[lsKey]));
+                }
+
+                Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
+                console.log('Import data process finished, message shown.'); // Log para depuração
+                // Reinicia a aplicação para carregar os novos dados
+                Ponto.init();
+            } catch (error) {
+                Ponto._showErro('Erro ao ler ou parsear o arquivo JSON: ' + error.message);
+                console.error('Error reading or parsing JSON file:', error); // Log para depuração
+            }
+        };
+        reader.readAsText(file);
     }
 };
