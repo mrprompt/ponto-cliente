@@ -108,12 +108,6 @@ var Ponto = {
             $('#login-form').dialog('close');
             $('#login-form').remove();
 
-            // Check if initial admin message needs to be shown
-            if (localStorage.getItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME) === 'true' &&
-                localStorage.getItem(LS_KEYS.INITIAL_SETUP_DONE) !== 'true') {
-                Ponto._showInitialSetupModal();
-            }
-
             const header = $('<header/>');
             const menu = $('<ul/>');
 
@@ -1015,38 +1009,6 @@ var Ponto = {
     },
 
     /**
-     * Exibe um modal informando sobre o usuário padrão admin/admin.
-     * Este modal é exibido apenas no primeiro acesso após a criação do usuário padrão.
-     */
-    _showInitialSetupModal: function() {
-        $('<div/>')
-            .attr('id', 'initial-setup-modal')
-            .html('<p>Bem-vindo ao Ponto Eletrônico!</p>' +
-                  '<p>Um usuário padrão foi criado para você:</p>' +
-                  '<p><strong>Login:</strong> admin</p>' +
-                  '<p><strong>Senha:</strong> admin</p>' +
-                  '<p>Por favor, acesse as "Preferências" para alterar sua senha e outros dados.</p>')
-            .appendTo($('#Ponto'))
-            .dialog({
-                title: 'Primeiro Acesso',
-                width: 400,
-                modal: true,
-                resizable: false,
-                buttons: {
-                    "Entendi": function() {
-                        $(this).dialog('close');
-                        localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown
-                        $("#initial-setup-modal").remove();
-                    }
-                },
-                close: function() {
-                    localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown even if closed
-                    $("#initial-setup-modal").remove();
-                }
-            });
-    },
-
-    /**
      * Crio a sessão do usuário no localStorage do navegador (HTML5)
      */
     _criaSessao: function(dados) {
@@ -1180,7 +1142,32 @@ var Ponto = {
             .attr('id', 'login-form')
             .appendTo($('#Ponto'));
 
-        $('#login-form').append(Ponto._formLogin());
+        const $loginForm = Ponto._formLogin();
+        $('#login-form').append($loginForm);
+
+        // Check if initial admin message needs to be shown
+        if (localStorage.getItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME) === 'true' &&
+            localStorage.getItem(LS_KEYS.INITIAL_SETUP_DONE) !== 'true') {
+            const $messageDiv = $('<div/>')
+                .addClass('ui-widget ui-widget-content ui-corner-all')
+                .css({
+                    padding: '10px',
+                    marginBottom: '10px',
+                    textAlign: 'center',
+                    fontSize: '0.9em',
+                    color: '#363636',
+                    backgroundColor: '#fbec88',
+                    border: '1px solid #fad42e'
+                })
+                .html('<p>Bem-vindo ao Ponto Eletrônico!</p>' +
+                      '<p>Um usuário padrão foi criado para você:</p>' +
+                      '<p><strong>Login:</strong> admin</p>' +
+                      '<p><strong>Senha:</strong> admin</p>' +
+                      '<p>Por favor, acesse as "Preferências" para alterar sua senha e outros dados.</p>');
+            
+            $loginForm.append($messageDiv); // Append message to the form
+            localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown
+        }
 
         $("#login-form").dialog({
             title: 'Efetuar login',
@@ -1523,7 +1510,7 @@ var Ponto = {
                             senha: hashPassword($('#cadastro-form form #senha').val()), // Hash the password
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
-                            dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),
+                            dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]']:checked').map(function() { return $(this).val(); }).get().join(','),
                             owner: null // Top-level user
                         };
 
