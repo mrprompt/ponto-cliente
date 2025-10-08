@@ -21,7 +21,8 @@ const LS_KEYS = {
     USERS: 'ponto_users',
     RECORDS: 'ponto_records',
     NEXT_USER_ID: 'ponto_nextUserId',
-    NEXT_RECORD_ID: 'ponto_nextRecordId'
+    NEXT_RECORD_ID: 'ponto_nextRecordId',
+    CURRENT_USER: 'ponto_user' // New key for the logged-in user object
 };
 
 function getFromLS(key, defaultValue = []) {
@@ -53,6 +54,12 @@ function hashPassword(password) {
         console.error('SHA-256 library not loaded. Passwords will not be hashed.');
         return password; // Fallback to plain text if hashing library is not available
     }
+}
+
+// Helper to get the current logged-in user object
+function getCurrentUser() {
+    const userData = localStorage.getItem(LS_KEYS.CURRENT_USER);
+    return userData ? JSON.parse(userData) : null;
 }
 
 // Initial data setup if localStorage is empty
@@ -91,17 +98,19 @@ var Ponto = {
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
 
-        if (localStorage.getItem('id') !== null) {
+        const currentUser = getCurrentUser(); // Get the current logged-in user
+
+        if (currentUser !== null) {
             $('#login-form').dialog('close');
             $('#login-form').remove();
 
-            const header = $('<header/>'); // Changed var to const
-            const menu = $('<ul/>'); // Changed var to const
+            const header = $('<header/>');
+            const menu = $('<ul/>');
 
             header
                 .append($('<span/>')
                         .html('Logado como: ')
-                        .append($('<b/>').html(localStorage.getItem('nome')))
+                        .append($('<b/>').html(currentUser.nome))
                 )
                 .append($('<nav/>')
                     .append(
@@ -130,7 +139,7 @@ var Ponto = {
                 )
                 .insertBefore($('#Ponto'));
 
-            if (localStorage.getItem('owner') == 'null') { // Check if current user is an owner (owner is null for top-level admin)
+            if (currentUser.owner == null) { // Check if current user is an owner (owner is null for top-level admin)
                 menu
                     .append($('<li/>')
                         .append($('<a/>')
@@ -157,8 +166,8 @@ var Ponto = {
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
-            const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
-            const objData = new Date(); // Changed var to const
+            const arrDiasTrabalho = currentUser.dias_trabalho.split(',');
+            const objData = new Date();
 
             if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) < 0) {
                 $('header nav ul li:eq(0)').hide();
@@ -174,7 +183,7 @@ var Ponto = {
      * Cria o formulário de login
      */
     _formLogin: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'usuario')
                 .html('Usuário')
@@ -199,7 +208,7 @@ var Ponto = {
      * Formulário de cadastro de usuário
      */
     _formCadastro: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'Nome')
                 .html('Nome')
@@ -214,7 +223,7 @@ var Ponto = {
                 .append($('<input/>')
                     .attr('type', 'text')
                     .attr('name', 'usuario')
-                    .attr('id', 'usuario') // Corrected ID from 'id' to 'usuario'
+                    .attr('id', 'usuario')
                     .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
                 .attr('for', 'email')
@@ -331,7 +340,7 @@ var Ponto = {
                 .attr('name', 'id')
                 .attr('id', 'id'));
 
-        const $form = $('<form/>') // Changed var to const
+        const $form = $('<form/>')
             .attr('id', 'frmCadastro')
             .append($fieldset);
 
@@ -342,7 +351,7 @@ var Ponto = {
      * Formulário de inserção de hora-ponto
      */
     _formPonto: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'observacao')
                 .html('Observação')
@@ -371,7 +380,8 @@ var Ponto = {
         $('.widget-grafico').remove();
 
         const allRecords = getFromLS(LS_KEYS.RECORDS);
-        const currentUserId = localStorage.getItem('id');
+        const currentUser = getCurrentUser();
+        const currentUserId = currentUser ? currentUser.id : null;
         const filterMonth = strData.substring(0, 7); // YYYY-MM
 
         // Filter all records for the current user and selected month
@@ -392,7 +402,7 @@ var Ponto = {
             dailyGroupedPunches[date].punches.push(record);
         });
 
-        let finalProcessedRecords = []; // Changed to let for re-assignment after sorting
+        let finalProcessedRecords = [];
         const dailyChartMinutes = {}; // Stores total minutes worked per day for charts
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
@@ -522,7 +532,7 @@ var Ponto = {
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
         if (finalProcessedRecords.length !== 0) {
-            const horas_dia_config = parseInt(localStorage.getItem('horas_dia'), 10);
+            const horas_dia_config = currentUser ? parseInt(currentUser.horas_dia, 10) : 0;
             const intExpediente_config = horas_dia_config * 60; // Daily target in minutes
 
             $.each(finalProcessedRecords, function() {
@@ -635,7 +645,7 @@ var Ponto = {
             });
 
             // Gráfico barras - Meta mensal de horas
-            const arrDiasTrabalhoMeta = localStorage.getItem('dias_trabalho').split(',');
+            const arrDiasTrabalhoMeta = currentUser ? currentUser.dias_trabalho.split(',') : [];
             const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
             let intDiasMeta = 0;
 
@@ -688,7 +698,6 @@ var Ponto = {
      * Remove uma lista de usuários do banco
      */
     _removerUsuario: function(lista) {
-        // --- START LOCALSTORAGE IMPLEMENTATION ---
         let allUsers = getFromLS(LS_KEYS.USERS);
         let allRecords = getFromLS(LS_KEYS.RECORDS);
 
@@ -708,7 +717,6 @@ var Ponto = {
             $(this).dialog('close');
             Ponto._showErro('Não foi possível remover os usuários selecionados.');
         }
-        // --- END LOCALSTORAGE IMPLEMENTATION ---
     },
 
     /**
@@ -729,16 +737,7 @@ var Ponto = {
                 "Continuar": function() {
                     // salvo o estado do usuário inicial
                     if (localStorage.getItem('inicial') == null) {
-                        localStorage.setItem('inicial', JSON.stringify({
-                            'id': localStorage.getItem('id'),
-                            'nome': localStorage.getItem('nome'),
-                            'login': localStorage.getItem('login'),
-                            'email': localStorage.getItem('email'),
-                            'horas_dia': localStorage.getItem('horas_dia'),
-                            'horas_almoco': localStorage.getItem('horas_almoco'),
-                            'dias_trabalho': localStorage.getItem('dias_trabalho'),
-                            'owner': localStorage.getItem('owner')
-                        }));
+                        localStorage.setItem('inicial', JSON.stringify(getCurrentUser()));
                     }
 
                     Ponto._criaSessao(objUsuario);
@@ -812,11 +811,7 @@ var Ponto = {
      * Crio a sessão do usuário no localStorage do navegador (HTML5)
      */
     _criaSessao: function(dados) {
-        for (var indice in dados) {
-            if (dados.hasOwnProperty(indice)) {
-                localStorage.setItem(indice, dados[indice]);
-            }
-        }
+        saveToLS(LS_KEYS.CURRENT_USER, dados);
     },
 
     /**
@@ -824,8 +819,7 @@ var Ponto = {
      * Mantém os dados de usuários e registros.
      */
     _clearSessionData: function() {
-        const sessionKeys = ['id', 'nome', 'login', 'email', 'senha', 'horas_dia', 'horas_almoco', 'dias_trabalho', 'owner'];
-        sessionKeys.forEach(key => localStorage.removeItem(key));
+        localStorage.removeItem(LS_KEYS.CURRENT_USER);
         localStorage.removeItem('inicial'); // Also remove the 'inicial' key if it exists
     },
 
@@ -883,7 +877,8 @@ var Ponto = {
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
-        $('#cadastro-form form #owner').val(localStorage.id);
+        const currentUser = getCurrentUser();
+        $('#cadastro-form form #owner').val(currentUser ? currentUser.id : null);
 
         $("#cadastro-form").dialog({
             title: 'Cadastro',
@@ -892,10 +887,9 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
                         const newUserId = generateUniqueId(LS_KEYS.NEXT_USER_ID);
                         const newUserData = {
@@ -907,7 +901,7 @@ var Ponto = {
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
                             dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),
-                            owner: localStorage.getItem('id')
+                            owner: currentUser ? currentUser.id : null
                         };
 
                         // Check for duplicate login
@@ -922,7 +916,6 @@ var Ponto = {
                         $(this).dialog('close');
                         $('#cadastro-form').remove();
                         Ponto._showMsg('Usuário cadastrado.');
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -957,12 +950,11 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Login": function() {
-                    let bValid = true; // Changed var to let
+                    let bValid = true;
                     bValid = bValid && $('#usuario').val().length !== 0;
                     bValid = bValid && $('#senha').val().length !== 0;
 
                     if (bValid === true) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         const users = getFromLS(LS_KEYS.USERS);
                         const username = $('#login-form form #usuario').val();
                         const password = $('#login-form form #senha').val();
@@ -976,7 +968,6 @@ var Ponto = {
                         } else {
                             Ponto._showErro('Usuário ou senha inválidos.');
                         }
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro('Preencha todos os campos');
@@ -1001,11 +992,11 @@ var Ponto = {
      * Encerra a sessão do usuário
      */
     logout: function() {
-        let mensagem = ''; // Changed var to let
+        let mensagem = '';
 
         // retomar sessão original
         if (localStorage.getItem('inicial') !== null) {
-            const original = JSON.parse(localStorage.getItem('inicial')); // Changed var to const
+            const original = JSON.parse(localStorage.getItem('inicial'));
             mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
@@ -1019,7 +1010,6 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Voltar ao estado inicial": function() {
-                            // salvo o estado do usuário inicial
                             Ponto._criaSessao(original);
 
                             localStorage.removeItem('inicial');
@@ -1081,8 +1071,9 @@ var Ponto = {
      * Registro de ponto
      */
     ponto: function() {
-        const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
-        const objData = new Date(); // Changed var to const
+        const currentUser = getCurrentUser();
+        const arrDiasTrabalho = currentUser ? currentUser.dias_trabalho.split(',') : [];
+        const objData = new Date();
 
         if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
             $('<div/>')
@@ -1098,10 +1089,9 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Registrar": function() {
-                            // --- START LOCALSTORAGE IMPLEMENTATION ---
                             let allRecords = getFromLS(LS_KEYS.RECORDS);
                             const newRecordId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
-                            const currentUserId = localStorage.getItem('id');
+                            const currentUserId = currentUser ? currentUser.id : null;
                             const now = new Date();
                             const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
                             const timeString = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
@@ -1150,7 +1140,6 @@ var Ponto = {
                                         }
                                     }
                                 });
-                            // --- END LOCALSTORAGE IMPLEMENTATION ---
                         },
                         "Fechar": function() {
                             $(this).dialog('close');
@@ -1177,14 +1166,16 @@ var Ponto = {
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
+        const currentUser = getCurrentUser();
+
         // preencho o formulário
-        $('#cadastro-form form #nome').val(localStorage.getItem('nome'));
-        $('#cadastro-form form #email').val(localStorage.getItem('email'));
-        $('#cadastro-form form #usuario').val(localStorage.getItem('login')).attr('readonly', 'readonly');
-        $('#cadastro-form form #id').val(localStorage.getItem('id'));
-        $('#cadastro-form form #owner').val(localStorage.getItem('owner'));
-        $('#cadastro-form form #horas_dia').val(localStorage.getItem('horas_dia'));
-        $('#cadastro-form form #horas_almoco').val(localStorage.getItem('horas_almoco'));
+        $('#cadastro-form form #nome').val(currentUser.nome);
+        $('#cadastro-form form #email').val(currentUser.email);
+        $('#cadastro-form form #usuario').val(currentUser.login).attr('readonly', 'readonly');
+        $('#cadastro-form form #id').val(currentUser.id);
+        $('#cadastro-form form #owner').val(currentUser.owner);
+        $('#cadastro-form form #horas_dia').val(currentUser.horas_dia);
+        $('#cadastro-form form #horas_almoco').val(currentUser.horas_almoco);
 
         $('#cadastro-form form input#usuario').hide();
         $('#cadastro-form form input#usuario').parent().hide();
@@ -1193,12 +1184,12 @@ var Ponto = {
         $('#cadastro-form form input[type=password]').parent().hide();
 
         // marco os dias da semana que são trabalhados
-        const $dias = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
+        const $dias = currentUser.dias_trabalho.split(',');
 
         $('#cadastro-form form input[type=checkbox]')
             .attr('checked', false);
 
-        for (const i in $dias) { // Changed var to const
+        for (const i in $dias) {
             $('#cadastro-form form #dias_trabalho_' + $dias[i])
                 .attr('checked', true);
         }
@@ -1210,12 +1201,11 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Atualizar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
-                        const userId = localStorage.getItem('id');
+                        const userId = currentUser.id;
                         const userIndex = allUsers.findIndex(user => user.id === userId);
 
                         if (userIndex !== -1) {
@@ -1243,7 +1233,6 @@ var Ponto = {
                         } else {
                             Ponto._showErro('Usuário não encontrado para atualização.');
                         }
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -1282,10 +1271,9 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
                         const newUserId = generateUniqueId(LS_KEYS.NEXT_USER_ID);
                         const newUserData = {
@@ -1316,7 +1304,6 @@ var Ponto = {
 
                         Ponto.init();
                         Ponto._showMsg('Bem vindo :)');
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -1395,11 +1382,10 @@ var Ponto = {
             .addClass('widget-usuarios')
             .appendTo($('#Ponto'));
 
-        // --- START LOCALSTORAGE IMPLEMENTATION ---
         const allUsers = getFromLS(LS_KEYS.USERS);
-        const currentUserId = localStorage.getItem('id');
+        const currentUser = getCurrentUser();
+        const currentUserId = currentUser ? currentUser.id : null;
         const retorno = allUsers.filter(user => user.owner === currentUserId);
-        // --- END LOCALSTORAGE IMPLEMENTATION ---
 
         if (retorno.length !== 0) {
             $('<table/>')
@@ -1427,7 +1413,7 @@ var Ponto = {
                 .appendTo($('#tbUsuarios'));
 
             $.each(retorno, function(intLinha, objUsuario) {
-                const $linha = $('<tr/>').appendTo($('#tbUsuarios tbody')); // Changed var to const
+                const $linha = $('<tr/>').appendTo($('#tbUsuarios tbody'));
 
                 $linha.append($('<td/>')
                         .addClass('id')
@@ -1475,15 +1461,15 @@ var Ponto = {
                     Ponto._adicionarUsuario();
                 },
                 'Remover selecionados': function() {
-                    const $selecionados = $('#tbUsuarios input:checkbox:checked'); // Changed var to const
-                    const $lista = []; // Changed var to const and initialized as array
+                    const $selecionados = $('#tbUsuarios input:checkbox:checked');
+                    const $lista = [];
 
-                    $selecionados.each(function() { // Removed i parameter as it's not used
+                    $selecionados.each(function() {
                         $lista.push($(this).val());
                     });
 
                     if ($lista.length !== 0) {
-                        const $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.'; // Changed var to const
+                        const $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.';
 
                         $('<div/>')
                             .attr('id', 'apagar-form')
