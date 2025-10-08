@@ -292,6 +292,51 @@ nav .ui-button {
 }
 /* --- /lista de usuário */
 
+/* --- edit-punch-modal specific styling */
+#edit-punch-modal h4 {
+    margin-bottom: 5px;
+    color: #505050;
+    font-size: 105%;
+    border-bottom: 1px solid #EEE;
+    padding-bottom: 3px;
+}
+
+#edit-punch-modal label {
+    display: block; /* Keep labels on their own line */
+    margin-bottom: 5px;
+    font-size: 110%;
+}
+#edit-punch-modal input[type="text"],
+#edit-punch-modal textarea {
+    width: calc(100% - 12px); /* Adjust width to account for padding and border */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+    padding: 5px;
+    display: block; /* Ensure they break line after their label */
+    margin-top: 2px; /* Small vertical spacing */
+    margin-left: 0; /* Reset any inherited left margin */
+}
+
+/* Remove radioContainer specific styles as it's no longer used in this modal */
+/*
+#edit-punch-modal .radioContainer {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+#edit-punch-modal .radioContainer input[type="radio"] {
+    margin-right: 5px;
+    vertical-align: middle;
+    margin-left: 0;
+}
+#edit-punch-modal .radioContainer label {
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 0;
+    font-size: 1em;
+}
+*/
+
 /* --- Edit Punch Modal */
 #edit-punch-dialog .edit-punch-form {
     margin-bottom: 15px;

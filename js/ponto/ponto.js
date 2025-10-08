@@ -23,7 +23,9 @@ const LS_KEYS = {
     RECORDS: 'ponto_records',
     NEXT_USER_ID: 'ponto_nextUserId',
     NEXT_RECORD_ID: 'ponto_nextRecordId',
-    CURRENT_USER: 'ponto_user' // New key for the logged-in user object
+    CURRENT_USER: 'ponto_user', // New key for the logged-in user object
+    INITIAL_SETUP_DONE: 'ponto_initialSetupDone', // Flag to show initial admin message only once
+    ADMIN_CREATED_FIRST_TIME: 'ponto_adminCreatedFirstTime' // Flag to indicate admin was created initially
 };
 
 function getFromLS(key, defaultValue = []) {
@@ -79,6 +81,7 @@ function setupInitialData() {
         };
         saveToLS(LS_KEYS.USERS, [initialUser]);
         localStorage.setItem(LS_KEYS.NEXT_USER_ID, '2');
+        localStorage.setItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME, 'true'); // Set flag here
     }
 
     if (!localStorage.getItem(LS_KEYS.RECORDS)) {
@@ -467,7 +470,9 @@ var Ponto = {
                             saidaId: punch.id, // Add exit ID
                             horas: formattedHours,
                             totalMinutes: durationMinutes,
-                            obs: combinedObs.join('; ') // Concatenate only for the pair
+                            obs: combinedObs.join('; '), // Concatenate only for the pair
+                            entradaId: currentEntryPunch.id, // Store IDs for editing
+                            saidaId: punch.id
                         });
                         currentEntryPunch = null; // Reset for next pair
                     } else {
@@ -480,7 +485,8 @@ var Ponto = {
                             saidaId: punch.id, // Add exit ID
                             horas: '00:00', // No duration for unmatched exit
                             totalMinutes: 0,
-                            obs: punch.observacao // Use its own observation
+                            obs: punch.observacao, // Use its own observation
+                            saidaId: punch.id // Store ID for editing
                         });
                     }
                 }
@@ -496,7 +502,8 @@ var Ponto = {
                     saidaId: null,
                     horas: '00:00',
                     totalMinutes: 0,
-                    obs: currentEntryPunch.observacao // Use its own observation
+                    obs: currentEntryPunch.observacao, // Use its own observation
+                    entradaId: currentEntryPunch.id // Store ID for editing
                 });
             }
             
@@ -580,6 +587,21 @@ var Ponto = {
                     .append($('<td/>')
                         .addClass('horas')
                         .html(this.horas));
+
+                // Store IDs in data attributes for easy retrieval
+                if (this.entradaId) {
+                    $linha.data('entrada-id', this.entradaId);
+                }
+                if (this.saidaId) {
+                    $linha.data('saida-id', this.saidaId);
+                }
+
+                // Double-click to edit
+                $linha.dblclick(function() {
+                    const entradaId = $(this).data('entrada-id');
+                    const saidaId = $(this).data('saida-id');
+                    Ponto._openEditPunchModal(entradaId, saidaId);
+                });
 
                 // Determine if the daily target was met for this row's date
                 const totalMinutesForThisDay = dailyChartMinutes[this.data] || 0;
@@ -721,6 +743,227 @@ var Ponto = {
                     $('<td/>').attr('colspan', '4').addClass('noResult').html('Sem dados')
                 ).appendTo($('#tbRelatorio tbody'));
         }
+    },
+
+    /**
+     * Formulário para edição de um par de registros de ponto (entrada e saída).
+     */
+    _formEditPunchPair: function(date, entryPunch = null, exitPunch = null) {
+        const $fieldset = $('<fieldset/>');
+
+        // Date field (read-only)
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-date')
+            .html('Data')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-date')
+                .attr('id', 'edit-date')
+                .val(date)
+                .attr('readonly', 'readonly')
+                .addClass('text ui-widget-content ui-corner-all')));
+
+        // Entry Section
+        $fieldset.append($('<h4/>').html('Entrada').css('margin-top', '15px'));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-entry-time')
+            .html('Hora')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-entry-time')
+                .attr('id', 'edit-entry-time')
+                .val(entryPunch ? entryPunch.time : '')
+                .mask('99:99', { placeholder: "HH:MM" })
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-entry-observacao')
+            .html('Observação')
+            .append($('<textarea/>')
+                .attr('name', 'edit-entry-observacao')
+                .attr('id', 'edit-entry-observacao')
+                .val(entryPunch ? entryPunch.observacao : '')
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<input/>')
+            .attr('type', 'hidden')
+            .attr('name', 'edit-entry-id')
+            .attr('id', 'edit-entry-id')
+            .val(entryPunch ? entryPunch.id : ''));
+
+        // Exit Section
+        $fieldset.append($('<h4/>').html('Saída').css('margin-top', '15px'));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-exit-time')
+            .html('Hora')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'edit-exit-time')
+                .attr('id', 'edit-exit-time')
+                .val(exitPunch ? exitPunch.time : '')
+                .mask('99:99', { placeholder: "HH:MM" })
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<label/>')
+            .attr('for', 'edit-exit-observacao')
+            .html('Observação')
+            .append($('<textarea/>')
+                .attr('name', 'edit-exit-observacao')
+                .attr('id', 'edit-exit-observacao')
+                .val(exitPunch ? exitPunch.observacao : '')
+                .addClass('text ui-widget-content ui-corner-all')));
+        $fieldset.append($('<input/>')
+            .attr('type', 'hidden')
+            .attr('name', 'edit-exit-id')
+            .attr('id', 'edit-exit-id')
+            .val(exitPunch ? exitPunch.id : ''));
+
+        return $('<form/>').append($fieldset);
+    },
+
+    /**
+     * Abre o modal para edição de um registro de ponto.
+     */
+    _openEditPunchModal: function(entradaId, saidaId) {
+        const allRecords = getFromLS(LS_KEYS.RECORDS);
+        let entryPunch = null;
+        let exitPunch = null;
+        let recordDate = '';
+        const currentUserId = getCurrentUser().id;
+
+        if (entradaId) {
+            entryPunch = allRecords.find(r => r.id === entradaId && r.usuarioId === currentUserId);
+            if (entryPunch) recordDate = entryPunch.data;
+        }
+        if (saidaId) {
+            exitPunch = allRecords.find(r => r.id === saidaId && r.usuarioId === currentUserId);
+            if (exitPunch) recordDate = exitPunch.data;
+        }
+
+        // If we have one punch but not the other, ensure recordDate is set
+        if (!recordDate && (entryPunch || exitPunch)) {
+            recordDate = (entryPunch || exitPunch).data;
+        }
+
+        if (!recordDate) {
+            Ponto._showErro('Data do registro de ponto não encontrada.');
+            return;
+        }
+
+        $('<div/>')
+            .attr('id', 'edit-punch-modal')
+            .appendTo($('#Ponto'));
+
+        $(Ponto._formEditPunchPair(recordDate, entryPunch, exitPunch)).appendTo($('#edit-punch-modal'));
+
+        $("#edit-punch-modal").dialog({
+            title: 'Editar Registros de Ponto',
+            width: 380, // Adjusted width for two sections
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Salvar": function() {
+                    const newEntryTime = $('#edit-punch-modal #edit-entry-time').val().trim();
+                    const newEntryObs = $('#edit-punch-modal #edit-entry-observacao').val().trim();
+                    const entryPunchId = $('#edit-punch-modal #edit-entry-id').val();
+
+                    const newExitTime = $('#edit-punch-modal #edit-exit-time').val().trim();
+                    const newExitObs = $('#edit-punch-modal #edit-exit-observacao').val().trim();
+                    const exitPunchId = $('#edit-punch-modal #edit-exit-id').val();
+
+                    const date = $('#edit-punch-modal #edit-date').val();
+                    const currentUserId = getCurrentUser().id;
+
+                    let recordsToUpdate = getFromLS(LS_KEYS.RECORDS);
+                    let changesMade = false;
+
+                    // Helper for time validation
+                    const isValidTime = (time) => time === '' || /^\d{2}:\d{2}$/.test(time);
+
+                    if (!isValidTime(newEntryTime) || !isValidTime(newExitTime)) {
+                        Ponto._showErro('Formato de hora inválido. Use HH:MM ou deixe em branco.');
+                        return;
+                    }
+
+                    // Process Entry Punch
+                    if (newEntryTime !== '') {
+                        if (entryPunchId) {
+                            // Update existing entry
+                            recordsToUpdate = recordsToUpdate.map(record => {
+                                if (record.id === entryPunchId) {
+                                    changesMade = true;
+                                    return { ...record, time: newEntryTime, observacao: newEntryObs };
+                                }
+                                return record;
+                            });
+                        } else {
+                            // Create new entry
+                            const newId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
+                            recordsToUpdate.push({
+                                id: newId,
+                                usuarioId: currentUserId,
+                                data: date,
+                                time: newEntryTime,
+                                tipo: 'entrada',
+                                observacao: newEntryObs
+                            });
+                            changesMade = true;
+                        }
+                    } else {
+                        if (entryPunchId) {
+                            // Delete existing entry
+                            recordsToUpdate = recordsToUpdate.filter(record => record.id !== entryPunchId);
+                            changesMade = true;
+                        }
+                    }
+
+                    // Process Exit Punch
+                    if (newExitTime !== '') {
+                        if (exitPunchId) {
+                            // Update existing exit
+                            recordsToUpdate = recordsToUpdate.map(record => {
+                                if (record.id === exitPunchId) {
+                                    changesMade = true;
+                                    return { ...record, time: newExitTime, observacao: newExitObs };
+                                }
+                                return record;
+                            });
+                        } else {
+                            // Create new exit
+                            const newId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
+                            recordsToUpdate.push({
+                                id: newId,
+                                usuarioId: currentUserId,
+                                data: date,
+                                time: newExitTime,
+                                tipo: 'saida',
+                                observacao: newExitObs
+                            });
+                            changesMade = true;
+                        }
+                    } else {
+                        if (exitPunchId) {
+                            // Delete existing exit
+                            recordsToUpdate = recordsToUpdate.filter(record => record.id !== exitPunchId);
+                            changesMade = true;
+                        }
+                    }
+
+                    if (changesMade) {
+                        saveToLS(LS_KEYS.RECORDS, recordsToUpdate);
+                        $(this).dialog('close');
+                        Ponto.relatorio(); // Refresh report
+                        Ponto._showMsg('Registros atualizados com sucesso!');
+                    } else {
+                        Ponto._showMsg('Nenhuma alteração foi feita.');
+                        $(this).dialog('close');
+                    }
+                },
+                "Fechar": function() {
+                    $(this).dialog('close');
+                }
+            },
+            close: function() {
+                $("#edit-punch-modal").remove();
+            }
+        });
     },
 
     /**
@@ -970,7 +1213,32 @@ var Ponto = {
             .attr('id', 'login-form')
             .appendTo($('#Ponto'));
 
-        $('#login-form').append(Ponto._formLogin());
+        const $loginForm = Ponto._formLogin();
+        $('#login-form').append($loginForm);
+
+        // Check if initial admin message needs to be shown
+        if (localStorage.getItem(LS_KEYS.ADMIN_CREATED_FIRST_TIME) === 'true' &&
+            localStorage.getItem(LS_KEYS.INITIAL_SETUP_DONE) !== 'true') {
+            const $messageDiv = $('<div/>')
+                .addClass('ui-widget ui-widget-content ui-corner-all')
+                .css({
+                    padding: '10px',
+                    marginBottom: '10px',
+                    textAlign: 'center',
+                    fontSize: '0.9em',
+                    color: '#363636',
+                    backgroundColor: '#fbec88',
+                    border: '1px solid #fad42e'
+                })
+                .html('<p>Bem-vindo ao Ponto Eletrônico!</p>' +
+                      '<p>Um usuário padrão foi criado para você:</p>' +
+                      '<p><strong>Login:</strong> admin</p>' +
+                      '<p><strong>Senha:</strong> admin</p>' +
+                      '<p>Por favor, acesse as "Preferências" para alterar sua senha e outros dados.</p>');
+            
+            $loginForm.append($messageDiv); // Append message to the form
+            localStorage.setItem(LS_KEYS.INITIAL_SETUP_DONE, 'true'); // Mark as shown
+        }
 
         $("#login-form").dialog({
             title: 'Efetuar login',
