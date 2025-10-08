@@ -182,20 +182,18 @@ nav .ui-button {
     display: block;
 }
 .widget-relatorio table .data {
-    width: 77px;
+    width: 77px; /* Adjusted width */
 }
 .widget-relatorio table .entrada {
-    width: 75px;
+    width: 75px; /* Adjusted width */
 }
 .widget-relatorio table .saida {
-    width: 75px;
+    width: 75px; /* Adjusted width */
 }
 .widget-relatorio table .horas {
-    width: 75px;
+    width: 75px; /* Adjusted width */
 }
-.widget-relatorio table .observacao {
-    width: 138px;
-}
+/* Removed .observacao width as it's no longer in the table */
 .widget-relatorio table thead {
     margin-bottom: 2px;
 }
@@ -293,3 +291,25 @@ nav .ui-button {
     display: block;
 }
 /* --- /lista de usuário */
+
+/* ---- responsive */
+@media (max-width: 480px) {
+    #container {
+        width: 95%;
+    }
+    .widget-calendario {
+        position: static;
+        display: block;
+        margin-bottom: 2em;
+    }
+    .widget-grafico {
+        display: block;
+        position: static;
+        margin-bottom: 4em;
+    }
+    .widget-relatorio {
+        display: block;
+        position: static;
+    }
+}
+/* ---- /responsive */

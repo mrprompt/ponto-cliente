@@ -21,7 +21,8 @@ const LS_KEYS = {
     USERS: 'ponto_users',
     RECORDS: 'ponto_records',
     NEXT_USER_ID: 'ponto_nextUserId',
-    NEXT_RECORD_ID: 'ponto_nextRecordId'
+    NEXT_RECORD_ID: 'ponto_nextRecordId',
+    CURRENT_USER: 'ponto_user' // New key for the logged-in user object
 };
 
 function getFromLS(key, defaultValue = []) {
@@ -53,6 +54,12 @@ function hashPassword(password) {
         console.error('SHA-256 library not loaded. Passwords will not be hashed.');
         return password; // Fallback to plain text if hashing library is not available
     }
+}
+
+// Helper to get the current logged-in user object
+function getCurrentUser() {
+    const userData = localStorage.getItem(LS_KEYS.CURRENT_USER);
+    return userData ? JSON.parse(userData) : null;
 }
 
 // Initial data setup if localStorage is empty
@@ -91,17 +98,19 @@ var Ponto = {
 
         $('<section/>').attr('id', 'Ponto').appendTo($('#container'));
 
-        if (localStorage.getItem('id') !== null) {
+        const currentUser = getCurrentUser(); // Get the current logged-in user
+
+        if (currentUser !== null) {
             $('#login-form').dialog('close');
             $('#login-form').remove();
 
-            const header = $('<header/>'); // Changed var to const
-            const menu = $('<ul/>'); // Changed var to const
+            const header = $('<header/>');
+            const menu = $('<ul/>');
 
             header
                 .append($('<span/>')
                         .html('Logado como: ')
-                        .append($('<b/>').html(localStorage.getItem('nome')))
+                        .append($('<b/>').html(currentUser.nome))
                 )
                 .append($('<nav/>')
                     .append(
@@ -130,7 +139,7 @@ var Ponto = {
                 )
                 .insertBefore($('#Ponto'));
 
-            if (localStorage.getItem('owner') == 'null') { // Check if current user is an owner (owner is null for top-level admin)
+            if (currentUser.owner == null) { // Check if current user is an owner (owner is null for top-level admin)
                 menu
                     .append($('<li/>')
                         .append($('<a/>')
@@ -157,8 +166,8 @@ var Ponto = {
 
             // escondo o botão de ponto caso hoje não seja um dia de trabalho
             // setado nas configurações do usuário
-            const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
-            const objData = new Date(); // Changed var to const
+            const arrDiasTrabalho = currentUser.dias_trabalho.split(',');
+            const objData = new Date();
 
             if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) < 0) {
                 $('header nav ul li:eq(0)').hide();
@@ -174,7 +183,7 @@ var Ponto = {
      * Cria o formulário de login
      */
     _formLogin: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'usuario')
                 .html('Usuário')
@@ -199,7 +208,7 @@ var Ponto = {
      * Formulário de cadastro de usuário
      */
     _formCadastro: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'Nome')
                 .html('Nome')
@@ -331,7 +340,7 @@ var Ponto = {
                 .attr('name', 'id')
                 .attr('id', 'id'));
 
-        const $form = $('<form/>') // Changed var to const
+        const $form = $('<form/>')
             .attr('id', 'frmCadastro')
             .append($fieldset);
 
@@ -342,7 +351,7 @@ var Ponto = {
      * Formulário de inserção de hora-ponto
      */
     _formPonto: function() {
-        const $fieldset = $('<fieldset/>') // Changed var to const
+        const $fieldset = $('<fieldset/>')
             .append($('<label/>')
                 .attr('for', 'observacao')
                 .html('Observação')
@@ -355,6 +364,14 @@ var Ponto = {
     },
 
     /**
+     * Helper function to convert HH:MM time string to minutes from midnight
+     */
+    _timeToMinutes: function(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    },
+
+    /**
      * Cria a tabela com o resultado das horas trabalhadas e gráficos usando Chart.js
      */
     _criaRelatorio: function(strData) {
@@ -363,18 +380,128 @@ var Ponto = {
         $('.widget-grafico').remove();
 
         const allRecords = getFromLS(LS_KEYS.RECORDS);
-        const currentUserId = localStorage.getItem('id');
+        const currentUser = getCurrentUser();
+        const currentUserId = currentUser ? currentUser.id : null;
         const filterMonth = strData.substring(0, 7); // YYYY-MM
 
         // Filter all records for the current user and selected month
-        const retorno = allRecords.filter(record => {
+        const filteredRecords = allRecords.filter(record => {
             const recordMonth = record.data.substring(0, 7);
             return record.usuarioId === currentUserId && recordMonth === filterMonth;
-        }).sort((a, b) => {
-            // Sort by date (newest first), then by time (newest first)
-            const dateComparison = b.data.localeCompare(a.data); // Reverse for newest first
-            if (dateComparison !== 0) return dateComparison;
-            return b.time.localeCompare(a.time); // Reverse for newest first
+        });
+
+        // Aggregate records by day and then process into logical rows
+        const dailyGroupedPunches = {};
+        filteredRecords.forEach(record => {
+            const date = record.data;
+            if (!dailyGroupedPunches[date]) {
+                dailyGroupedPunches[date] = {
+                    punches: []
+                };
+            }
+            dailyGroupedPunches[date].punches.push(record);
+        });
+
+        let finalProcessedRecords = [];
+        const dailyChartMinutes = {}; // Stores total minutes worked per day for charts
+
+        // Iterate through each day's punches to create logical rows and aggregate chart data
+        // Process days in ascending order initially to build rows correctly
+        Object.keys(dailyGroupedPunches).sort().forEach(date => {
+            const dayData = dailyGroupedPunches[date];
+            const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
+
+            let currentEntryPunch = null; // Store the full punch object for entry
+            let dayTotalMinutesWorked = 0; // Accumulator for this specific day's total minutes
+
+            for (const punch of punches) {
+                if (punch.tipo === 'entrada') {
+                    if (currentEntryPunch !== null) {
+                        // Previous entry was unmatched, create a row for it
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: currentEntryPunch.time,
+                            saida: '',
+                            horas: '00:00',
+                            totalMinutes: 0,
+                            obs: currentEntryPunch.observacao // Use its own observation
+                        });
+                    }
+                    currentEntryPunch = punch; // Store the full punch object
+                } else if (punch.tipo === 'saida') {
+                    if (currentEntryPunch !== null) {
+                        // Found a pair
+                        const [entryH, entryM] = currentEntryPunch.time.split(':').map(Number);
+                        const [exitH, exitM] = punch.time.split(':').map(Number);
+                        const durationMinutes = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                        
+                        dayTotalMinutesWorked += durationMinutes; // Accumulate for charts
+
+                        const hours = Math.floor(durationMinutes / 60);
+                        const minutes = durationMinutes % 60;
+                        const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                        let combinedObs = [];
+                        if (currentEntryPunch.observacao) combinedObs.push(currentEntryPunch.observacao);
+                        if (punch.observacao) combinedObs.push(punch.observacao);
+
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: currentEntryPunch.time,
+                            saida: punch.time,
+                            horas: formattedHours,
+                            totalMinutes: durationMinutes,
+                            obs: combinedObs.join('; ') // Concatenate only for the pair
+                        });
+                        currentEntryPunch = null; // Reset for next pair
+                    } else {
+                        // This is an unmatched exit. Add it to the report.
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: '', // No entry for this exit
+                            saida: punch.time,
+                            horas: '00:00', // No duration for unmatched exit
+                            totalMinutes: 0,
+                            obs: punch.observacao // Use its own observation
+                        });
+                    }
+                }
+            }
+
+            // After loop, if there's an unmatched entry
+            if (currentEntryPunch !== null) {
+                finalProcessedRecords.push({
+                    data: date,
+                    entrada: currentEntryPunch.time,
+                    saida: '',
+                    horas: '00:00',
+                    totalMinutes: 0,
+                    obs: currentEntryPunch.observacao // Use its own observation
+                });
+            }
+            
+            // Store dayTotalMinutesWorked for chart aggregation
+            dailyChartMinutes[date] = dayTotalMinutesWorked;
+        });
+
+        // --- Global Sort for finalProcessedRecords (most recent to oldest) ---
+        finalProcessedRecords.sort((a, b) => {
+            // Compare dates first (descending)
+            const dateComparison = b.data.localeCompare(a.data);
+            if (dateComparison !== 0) {
+                return dateComparison;
+            }
+
+            // If dates are equal, compare times (descending)
+            // Use exit time if available, otherwise entry time
+            const timeA = a.saida || a.entrada;
+            const timeB = b.saida || b.entrada;
+
+            if (!timeA && !timeB) return 0; // Both have no time
+            if (!timeA) return 1; // a has no time, b comes first
+            if (!timeB) return -1; // b has no time, a comes first
+
+            return Ponto._timeToMinutes(timeB) - Ponto._timeToMinutes(timeA);
         });
 
         // Create new report container
@@ -384,108 +511,94 @@ var Ponto = {
                 .attr('id', 'tbRelatorio'))
             .appendTo($('#Ponto'));
 
-        // Create table headers for individual punches
+        // Create table headers for grouped punches
         $('<thead/>')
             .append($('<tr/>')
                 .append($('<th/>')
                     .addClass('data')
                     .html('Data'))
                 .append($('<th/>')
-                    .addClass('hora')
-                    .html('Hora'))
+                    .addClass('entrada')
+                    .html('Entrada'))
                 .append($('<th/>')
-                    .addClass('tipo')
-                    .html('Tipo'))
+                    .addClass('saida')
+                    .html('Saída'))
                 .append($('<th/>')
-                    .addClass('observacao')
-                    .html('Observação')))
+                    .addClass('horas')
+                    .html('Horas')))
             .addClass('ui-widget-header ui-helper-clearfix ui-corner-all')
             .appendTo($('#tbRelatorio'));
 
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
-        if (retorno.length !== 0) {
-            $.each(retorno, function() {
-                const $linha = $('<tr/>') // Changed var to const
+        if (finalProcessedRecords.length !== 0) {
+            const horas_dia_config = currentUser ? parseInt(currentUser.horas_dia, 10) : 0;
+            const intExpediente_config = horas_dia_config * 60; // Daily target in minutes
+
+            $.each(finalProcessedRecords, function() {
+                const $linha = $('<tr/>')
                     .appendTo($('#tbRelatorio tbody'));
 
                 $linha.append($('<td/>')
                         .addClass('data')
                         .html(this.data))
                     .append($('<td/>')
-                        .addClass('hora')
-                        .html(this.time))
+                        .addClass('entrada')
+                        .html(this.entrada))
                     .append($('<td/>')
-                        .addClass('tipo')
-                        .html(this.tipo === 'entrada' ? 'Entrada' : 'Saída'))
+                        .addClass('saida')
+                        .html(this.saida))
                     .append($('<td/>')
-                        .addClass('observacao')
-                        .html(this.observacao || '')); // Display empty string if no observation
+                        .addClass('horas')
+                        .html(this.horas));
 
-                if (this.observacao && this.observacao.length !== 0) {
-                    $linha.attr('title', this.observacao)
-                        .addClass('comObs')
-                        .tinyTips('title');
-                }
-            });
+                // Determine if the daily target was met for this row's date
+                const totalMinutesForThisDay = dailyChartMinutes[this.data] || 0;
 
-            // --- Data Aggregation for Charts (re-introduced) ---
-            const dailyAggregatedRecords = {};
-            retorno.forEach(record => {
-                const date = record.data;
-                if (!dailyAggregatedRecords[date]) {
-                    dailyAggregatedRecords[date] = {
-                        punches: [],
-                        obs: []
-                    };
-                }
-                dailyAggregatedRecords[date].punches.push({ time: record.time, tipo: record.tipo });
-                if (record.observacao) {
-                    dailyAggregatedRecords[date].obs.push(record.observacao);
-                }
-            });
-
-            const processedForCharts = Object.keys(dailyAggregatedRecords).map(date => {
-                const dayRec = dailyAggregatedRecords[date];
-                const punches = dayRec.punches.sort((a, b) => a.time.localeCompare(b.time));
-
-                let totalMinutesWorked = 0;
-                let currentEntryTime = null;
-                for (const punch of punches) {
-                    if (punch.tipo === 'entrada') {
-                        currentEntryTime = punch.time;
-                    } else if (punch.tipo === 'saida' && currentEntryTime) {
-                        const [entryH, entryM] = currentEntryTime.split(':').map(Number);
-                        const [exitH, exitM] = punch.time.split(':').map(Number);
-                        totalMinutesWorked += (exitH * 60 + exitM) - (entryH * 60 + entryM);
-                        currentEntryTime = null;
+                if (totalMinutesForThisDay < intExpediente_config) {
+                    // Daily target NOT met, apply light red background
+                    $linha.addClass('expedienteMenor');
+                } else {
+                    // Daily target MET, apply observation-based styling if any
+                    if (this.obs && this.obs.length !== 0) {
+                        $linha.addClass('comObs');
                     }
                 }
-                return {
-                    data: date,
-                    totalMinutes: totalMinutesWorked
-                };
-            }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
-            const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10); // Changed var to const
-            const intExpediente = horas_dia * 60; // Changed var to const
-            let intExpedienteCheio = 0; // Changed var to let
-            let intExpedienteIncompleto = 0; // Changed var to let
-            const arrExpedienteHoras = {}; // Changed var to const
-            let intHorasTotal = 0; // Changed var to let
-
-            processedForCharts.forEach(dayData => {
-                const day = parseInt(dayData.data.substr(8, 2), 10);
-                const totalHours = dayData.totalMinutes / 60;
-                arrExpedienteHoras[day] = totalHours;
-                intHorasTotal += totalHours; // Accumulate total hours for the month
-                
-                if (dayData.totalMinutes < intExpediente) {
-                    intExpedienteIncompleto++;
-                } else {
-                    intExpedienteCheio++;
+                // Always add tinyTips if there's an observation
+                if (this.obs && this.obs.length !== 0) {
+                    $linha.attr('title', this.obs).tinyTips('title');
                 }
             });
+
+            // --- Chart Data Aggregation ---
+            let intExpedienteCheio = 0;
+            let intExpedienteIncompleto = 0;
+            const arrExpedienteHoras = {}; // Stores total hours per day (in hours)
+            let monthTotalMinutesWorked = 0; // Total minutes for the month
+
+            // Now process dailyChartMinutes for chart data
+            Object.keys(dailyChartMinutes).sort().forEach(dateKey => {
+                const totalMinutesForDay = dailyChartMinutes[dateKey];
+                const day = parseInt(dateKey.substr(8, 2), 10);
+                const totalHoursForDay = totalMinutesForDay / 60;
+                
+                arrExpedienteHoras[day] = totalHoursForDay; // For 'Horas/Dia' chart
+                monthTotalMinutesWorked += totalMinutesForDay; // For 'Meta Mensal' chart
+
+                // For 'Assiduidade' chart: check if day met target (only if there was any work)
+                if (totalMinutesForDay > 0) { // Only count days where there was actual work recorded
+                    if (totalMinutesForDay >= intExpediente_config) {
+                        intExpedienteCheio++;
+                    } else {
+                        intExpedienteIncompleto++;
+                    }
+                }
+            });
+
+            // Update intHorasTotal for 'Meta Mensal' chart
+            const intHorasTotal = monthTotalMinutesWorked / 60; // Convert total minutes to hours for display
+
 
             // Criação dos containers para gráficos Chart.js
             $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-assiduidade').attr('width', 250).attr('height', 150)).appendTo($('#Ponto'));
@@ -532,14 +645,14 @@ var Ponto = {
             });
 
             // Gráfico barras - Meta mensal de horas
-            const arrDiasTrabalhoMeta = localStorage.getItem('dias_trabalho').split(','); // Renamed to avoid conflict
-            const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text()); // Changed var to const
-            let intDiasMeta = 0; // Changed var to let
+            const arrDiasTrabalhoMeta = currentUser ? currentUser.dias_trabalho.split(',') : [];
+            const intDiasMesLastDay = parseInt($('.ui-datepicker-calendar tr .ui-state-default:last').text());
+            let intDiasMeta = 0;
 
-            const arrDataSplit = strData.split('-'); // Renamed to avoid conflict
-            let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1); // Changed var to let
+            const arrDataSplit = strData.split('-');
+            let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1);
 
-            for (let i = 1; i <= intDiasMesLastDay; i++) { // Changed var to let
+            for (let i = 1; i <= intDiasMesLastDay; i++) {
                 if ($.inArray(objDataLoop.getDay().toString(), arrDiasTrabalhoMeta) >= 0) {
                     intDiasMeta++;
                 }
@@ -547,14 +660,14 @@ var Ponto = {
             }
 
             const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
-            const intHorasMes = horas_dia * intDiasMeta;
+            const intHorasMes = horas_dia_config * intDiasMeta;
             new Chart(ctxMetaHoras, {
                 type: 'bar',
                 data: {
                     labels: ['Meta Mensal'],
                     datasets: [
                         {
-                            label: 'Cumpridas (' + intHorasTotal.toFixed(2) + ')', // Use toFixed for display
+                            label: 'Cumpridas (' + intHorasTotal.toFixed(2) + ')',
                             data: [intHorasTotal],
                             backgroundColor: '#DDD6F5'
                         },
@@ -585,7 +698,6 @@ var Ponto = {
      * Remove uma lista de usuários do banco
      */
     _removerUsuario: function(lista) {
-        // --- START LOCALSTORAGE IMPLEMENTATION ---
         let allUsers = getFromLS(LS_KEYS.USERS);
         let allRecords = getFromLS(LS_KEYS.RECORDS);
 
@@ -605,7 +717,6 @@ var Ponto = {
             $(this).dialog('close');
             Ponto._showErro('Não foi possível remover os usuários selecionados.');
         }
-        // --- END LOCALSTORAGE IMPLEMENTATION ---
     },
 
     /**
@@ -626,16 +737,7 @@ var Ponto = {
                 "Continuar": function() {
                     // salvo o estado do usuário inicial
                     if (localStorage.getItem('inicial') == null) {
-                        localStorage.setItem('inicial', JSON.stringify({
-                            'id': localStorage.getItem('id'),
-                            'nome': localStorage.getItem('nome'),
-                            'login': localStorage.getItem('login'),
-                            'email': localStorage.getItem('email'),
-                            'horas_dia': localStorage.getItem('horas_dia'),
-                            'horas_almoco': localStorage.getItem('horas_almoco'),
-                            'dias_trabalho': localStorage.getItem('dias_trabalho'),
-                            'owner': localStorage.getItem('owner')
-                        }));
+                        localStorage.setItem('inicial', JSON.stringify(getCurrentUser()));
                     }
 
                     Ponto._criaSessao(objUsuario);
@@ -709,11 +811,7 @@ var Ponto = {
      * Crio a sessão do usuário no localStorage do navegador (HTML5)
      */
     _criaSessao: function(dados) {
-        for (var indice in dados) {
-            if (dados.hasOwnProperty(indice)) {
-                localStorage.setItem(indice, dados[indice]);
-            }
-        }
+        saveToLS(LS_KEYS.CURRENT_USER, dados);
     },
 
     /**
@@ -721,8 +819,7 @@ var Ponto = {
      * Mantém os dados de usuários e registros.
      */
     _clearSessionData: function() {
-        const sessionKeys = ['id', 'nome', 'login', 'email', 'senha', 'horas_dia', 'horas_almoco', 'dias_trabalho', 'owner'];
-        sessionKeys.forEach(key => localStorage.removeItem(key));
+        localStorage.removeItem(LS_KEYS.CURRENT_USER);
         localStorage.removeItem('inicial'); // Also remove the 'inicial' key if it exists
     },
 
@@ -780,7 +877,8 @@ var Ponto = {
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
-        $('#cadastro-form form #owner').val(localStorage.id);
+        const currentUser = getCurrentUser();
+        $('#cadastro-form form #owner').val(currentUser ? currentUser.id : null);
 
         $("#cadastro-form").dialog({
             title: 'Cadastro',
@@ -789,10 +887,9 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
                         const newUserId = generateUniqueId(LS_KEYS.NEXT_USER_ID);
                         const newUserData = {
@@ -804,7 +901,7 @@ var Ponto = {
                             horas_dia: $('#cadastro-form form #horas_dia').val(),
                             horas_almoco: $('#cadastro-form form #horas_almoco').val(),
                             dias_trabalho: $('#cadastro-form form input[name="dias_trabalho[]"]:checked').map(function() { return $(this).val(); }).get().join(','),
-                            owner: localStorage.getItem('id')
+                            owner: currentUser ? currentUser.id : null
                         };
 
                         // Check for duplicate login
@@ -819,7 +916,6 @@ var Ponto = {
                         $(this).dialog('close');
                         $('#cadastro-form').remove();
                         Ponto._showMsg('Usuário cadastrado.');
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -854,12 +950,11 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Login": function() {
-                    let bValid = true; // Changed var to let
+                    let bValid = true;
                     bValid = bValid && $('#usuario').val().length !== 0;
                     bValid = bValid && $('#senha').val().length !== 0;
 
                     if (bValid === true) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         const users = getFromLS(LS_KEYS.USERS);
                         const username = $('#login-form form #usuario').val();
                         const password = $('#login-form form #senha').val();
@@ -873,7 +968,6 @@ var Ponto = {
                         } else {
                             Ponto._showErro('Usuário ou senha inválidos.');
                         }
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro('Preencha todos os campos');
@@ -898,11 +992,11 @@ var Ponto = {
      * Encerra a sessão do usuário
      */
     logout: function() {
-        let mensagem = ''; // Changed var to let
+        let mensagem = '';
 
         // retomar sessão original
         if (localStorage.getItem('inicial') !== null) {
-            const original = JSON.parse(localStorage.getItem('inicial')); // Changed var to const
+            const original = JSON.parse(localStorage.getItem('inicial'));
             mensagem = 'Sair do sistema ou apenas \nretornar ao usuário \noriginal?';
 
             $('<div/>')
@@ -916,7 +1010,6 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Voltar ao estado inicial": function() {
-                            // salvo o estado do usuário inicial
                             Ponto._criaSessao(original);
 
                             localStorage.removeItem('inicial');
@@ -978,8 +1071,9 @@ var Ponto = {
      * Registro de ponto
      */
     ponto: function() {
-        const arrDiasTrabalho = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
-        const objData = new Date(); // Changed var to const
+        const currentUser = getCurrentUser();
+        const arrDiasTrabalho = currentUser ? currentUser.dias_trabalho.split(',') : [];
+        const objData = new Date();
 
         if ($.inArray(objData.getDay().toString(), arrDiasTrabalho) >= 0) {
             $('<div/>')
@@ -995,10 +1089,9 @@ var Ponto = {
                     resizable: false,
                     buttons: {
                         "Registrar": function() {
-                            // --- START LOCALSTORAGE IMPLEMENTATION ---
                             let allRecords = getFromLS(LS_KEYS.RECORDS);
                             const newRecordId = generateUniqueId(LS_KEYS.NEXT_RECORD_ID);
-                            const currentUserId = localStorage.getItem('id');
+                            const currentUserId = currentUser ? currentUser.id : null;
                             const now = new Date();
                             const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
                             const timeString = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
@@ -1007,7 +1100,7 @@ var Ponto = {
                             const todayRecords = allRecords.filter(r => r.usuarioId === currentUserId && r.data === dateString);
                             
                             // Sort records by time to find the last punch chronologically
-                            todayRecords.sort((a, b) => a.time.localeCompare(b.time));
+                            todayRecords.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
 
                             let type;
                             if (todayRecords.length === 0) {
@@ -1047,7 +1140,6 @@ var Ponto = {
                                         }
                                     }
                                 });
-                            // --- END LOCALSTORAGE IMPLEMENTATION ---
                         },
                         "Fechar": function() {
                             $(this).dialog('close');
@@ -1074,14 +1166,16 @@ var Ponto = {
 
         $(Ponto._formCadastro()).appendTo($('#cadastro-form'));
 
+        const currentUser = getCurrentUser();
+
         // preencho o formulário
-        $('#cadastro-form form #nome').val(localStorage.getItem('nome'));
-        $('#cadastro-form form #email').val(localStorage.getItem('email'));
-        $('#cadastro-form form #usuario').val(localStorage.getItem('login')).attr('readonly', 'readonly');
-        $('#cadastro-form form #id').val(localStorage.getItem('id'));
-        $('#cadastro-form form #owner').val(localStorage.getItem('owner'));
-        $('#cadastro-form form #horas_dia').val(localStorage.getItem('horas_dia'));
-        $('#cadastro-form form #horas_almoco').val(localStorage.getItem('horas_almoco'));
+        $('#cadastro-form form #nome').val(currentUser.nome);
+        $('#cadastro-form form #email').val(currentUser.email);
+        $('#cadastro-form form #usuario').val(currentUser.login).attr('readonly', 'readonly');
+        $('#cadastro-form form #id').val(currentUser.id);
+        $('#cadastro-form form #owner').val(currentUser.owner);
+        $('#cadastro-form form #horas_dia').val(currentUser.horas_dia);
+        $('#cadastro-form form #horas_almoco').val(currentUser.horas_almoco);
 
         $('#cadastro-form form input#usuario').hide();
         $('#cadastro-form form input#usuario').parent().hide();
@@ -1090,12 +1184,12 @@ var Ponto = {
         $('#cadastro-form form input[type=password]').parent().hide();
 
         // marco os dias da semana que são trabalhados
-        const $dias = localStorage.getItem('dias_trabalho').split(','); // Changed var to const
+        const $dias = currentUser.dias_trabalho.split(',');
 
         $('#cadastro-form form input[type=checkbox]')
             .attr('checked', false);
 
-        for (const i in $dias) { // Changed var to const
+        for (const i in $dias) {
             $('#cadastro-form form #dias_trabalho_' + $dias[i])
                 .attr('checked', true);
         }
@@ -1107,12 +1201,11 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Atualizar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
-                        const userId = localStorage.getItem('id');
+                        const userId = currentUser.id;
                         const userIndex = allUsers.findIndex(user => user.id === userId);
 
                         if (userIndex !== -1) {
@@ -1140,7 +1233,6 @@ var Ponto = {
                         } else {
                             Ponto._showErro('Usuário não encontrado para atualização.');
                         }
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -1179,10 +1271,9 @@ var Ponto = {
             resizable: false,
             buttons: {
                 "Cadastrar": function() {
-                    const bValid = Ponto._validaCadastro(); // Changed var to const
+                    const bValid = Ponto._validaCadastro();
 
                     if (bValid.length === 0) {
-                        // --- START LOCALSTORAGE IMPLEMENTATION ---
                         let allUsers = getFromLS(LS_KEYS.USERS);
                         const newUserId = generateUniqueId(LS_KEYS.NEXT_USER_ID);
                         const newUserData = {
@@ -1213,7 +1304,6 @@ var Ponto = {
 
                         Ponto.init();
                         Ponto._showMsg('Bem vindo :)');
-                        // --- END LOCALSTORAGE IMPLEMENTATION ---
                     }
                     else {
                         Ponto._showErro(bValid);
@@ -1292,11 +1382,10 @@ var Ponto = {
             .addClass('widget-usuarios')
             .appendTo($('#Ponto'));
 
-        // --- START LOCALSTORAGE IMPLEMENTATION ---
         const allUsers = getFromLS(LS_KEYS.USERS);
-        const currentUserId = localStorage.getItem('id');
+        const currentUser = getCurrentUser();
+        const currentUserId = currentUser ? currentUser.id : null;
         const retorno = allUsers.filter(user => user.owner === currentUserId);
-        // --- END LOCALSTORAGE IMPLEMENTATION ---
 
         if (retorno.length !== 0) {
             $('<table/>')
@@ -1324,7 +1413,7 @@ var Ponto = {
                 .appendTo($('#tbUsuarios'));
 
             $.each(retorno, function(intLinha, objUsuario) {
-                const $linha = $('<tr/>').appendTo($('#tbUsuarios tbody')); // Changed var to const
+                const $linha = $('<tr/>').appendTo($('#tbUsuarios tbody'));
 
                 $linha.append($('<td/>')
                         .addClass('id')
@@ -1372,15 +1461,15 @@ var Ponto = {
                     Ponto._adicionarUsuario();
                 },
                 'Remover selecionados': function() {
-                    const $selecionados = $('#tbUsuarios input:checkbox:checked'); // Changed var to const
-                    const $lista = []; // Changed var to const and initialized as array
+                    const $selecionados = $('#tbUsuarios input:checkbox:checked');
+                    const $lista = [];
 
-                    $selecionados.each(function() { // Removed i parameter as it's not used
+                    $selecionados.each(function() {
                         $lista.push($(this).val());
                     });
 
                     if ($lista.length !== 0) {
-                        const $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.'; // Changed var to const
+                        const $msg = 'Remover permanentemente o(s) usuário(s) selecionado(s)? <br/>' + 'Todos os dados relacionados a este usuário ' + 'serão removidos de forma irreversível.';
 
                         $('<div/>')
                             .attr('id', 'apagar-form')
