@@ -1756,8 +1756,15 @@ var Ponto = {
                 // Substitui os dados no LocalStorage
                 for (const key in LS_KEYS) {
                     const lsKey = LS_KEYS[key];
-                    // Salva o valor diretamente, pois já foi parseado/validado
-                    localStorage.setItem(lsKey, JSON.stringify(importedData[lsKey]));
+                    const valueToStore = importedData[lsKey];
+
+                    // Para NEXT_USER_ID e NEXT_RECORD_ID, armazene como string simples
+                    if (lsKey === LS_KEYS.NEXT_USER_ID || lsKey === LS_KEYS.NEXT_RECORD_ID) {
+                        localStorage.setItem(lsKey, valueToStore);
+                    } else {
+                        // Para outros dados (objetos/arrays), stringifique-os
+                        localStorage.setItem(lsKey, JSON.stringify(valueToStore));
+                    }
                 }
 
                 Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
