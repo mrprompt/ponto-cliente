@@ -372,59 +372,90 @@ var Ponto = {
             return record.usuarioId === currentUserId && recordMonth === filterMonth;
         });
 
-        // Aggregate records by day for display and chart data
-        const dailyAggregatedData = {};
+        // Aggregate records by day and then process into logical rows
+        const dailyGroupedPunches = {};
         filteredRecords.forEach(record => {
             const date = record.data;
-            if (!dailyAggregatedData[date]) {
-                dailyAggregatedData[date] = {
+            if (!dailyGroupedPunches[date]) {
+                dailyGroupedPunches[date] = {
                     punches: [],
                     obs: []
                 };
             }
-            dailyAggregatedData[date].punches.push(record);
+            dailyGroupedPunches[date].punches.push(record);
             if (record.observacao) {
-                dailyAggregatedData[date].obs.push(record.observacao);
+                dailyGroupedPunches[date].obs.push(record.observacao);
             }
         });
 
-        const processedDailyRecords = Object.keys(dailyAggregatedData).map(date => {
-            const dayData = dailyAggregatedData[date];
+        const finalProcessedRecords = []; // This will be the flat array of all rows for the month
+        const dailyChartMinutes = {}; // Stores total minutes worked per day for charts
+
+        // Iterate through each day's punches to create logical rows and aggregate chart data
+        Object.keys(dailyGroupedPunches).sort().forEach(date => {
+            const dayData = dailyGroupedPunches[date];
             const punches = dayData.punches.sort((a, b) => a.time.localeCompare(b.time));
+            const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
 
-            let lastEntryTime = ''; // Will store the last entry for the day
-            let lastExitTime = '';  // Will store the last exit for the day
-            let totalMinutesWorked = 0;
+            let currentEntryTime = null;
+            let dayTotalMinutesWorked = 0; // Accumulator for this specific day's total minutes
 
-            // Find the last entry and last exit for the day
             for (const punch of punches) {
                 if (punch.tipo === 'entrada') {
-                    lastEntryTime = punch.time;
+                    if (currentEntryTime !== null) {
+                        // Previous entry was unmatched, create a row for it
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: currentEntryTime,
+                            saida: '',
+                            horas: '00:00',
+                            totalMinutes: 0,
+                            obs: dayObservations
+                        });
+                    }
+                    currentEntryTime = punch.time;
                 } else if (punch.tipo === 'saida') {
-                    lastExitTime = punch.time;
+                    if (currentEntryTime !== null) {
+                        // Found a pair
+                        const [entryH, entryM] = currentEntryTime.split(':').map(Number);
+                        const [exitH, exitM] = punch.time.split(':').map(Number);
+                        const durationMinutes = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                        
+                        dayTotalMinutesWorked += durationMinutes; // Accumulate for charts
+
+                        const hours = Math.floor(durationMinutes / 60);
+                        const minutes = durationMinutes % 60;
+                        const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                        finalProcessedRecords.push({
+                            data: date,
+                            entrada: currentEntryTime,
+                            saida: punch.time,
+                            horas: formattedHours,
+                            totalMinutes: durationMinutes,
+                            obs: dayObservations
+                        });
+                        currentEntryTime = null; // Reset for next pair
+                    }
+                    // If currentEntryTime is null, it's an unmatched exit, which we'll ignore for now as per request.
                 }
             }
 
-            // Calculate total minutes based on the last entry and last exit
-            if (lastEntryTime && lastExitTime) {
-                const [entryH, entryM] = lastEntryTime.split(':').map(Number);
-                const [exitH, exitM] = lastExitTime.split(':').map(Number);
-                totalMinutesWorked = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+            // After loop, if there's an unmatched entry
+            if (currentEntryTime !== null) {
+                finalProcessedRecords.push({
+                    data: date,
+                    entrada: currentEntryTime,
+                    saida: '',
+                    horas: '00:00',
+                    totalMinutes: 0,
+                    obs: dayObservations
+                });
             }
-
-            const hours = Math.floor(totalMinutesWorked / 60);
-            const minutes = totalMinutesWorked % 60;
-            const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-
-            return {
-                data: date,
-                entrada: lastEntryTime, // Display last entry
-                saida: lastExitTime,   // Display last exit
-                horas: formattedHours,
-                totalMinutes: totalMinutesWorked,
-                obs: dayData.obs.join('; ')
-            };
-        }).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()); // Sort by date ascending for display
+            
+            // Store dayTotalMinutesWorked for chart aggregation
+            dailyChartMinutes[date] = dayTotalMinutesWorked;
+        });
 
         // Create new report container
         $('<div/>').attr('class', 'widget-relatorio')
@@ -453,8 +484,8 @@ var Ponto = {
 
         $('<tbody/>').appendTo($('#tbRelatorio'));
 
-        if (processedDailyRecords.length !== 0) {
-            $.each(processedDailyRecords, function() {
+        if (finalProcessedRecords.length !== 0) {
+            $.each(finalProcessedRecords, function() {
                 const $linha = $('<tr/>')
                     .appendTo($('#tbRelatorio tbody'));
 
@@ -480,31 +511,54 @@ var Ponto = {
                 // Add classes for visual feedback based on daily hours
                 const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
                 const intExpediente = horas_dia * 60;
-                if (this.totalMinutes < intExpediente && this.saida) { // Only mark if there's an exit punch
-                    $linha.addClass('expedienteMenor');
+                // Apply 'expedienteMenor' class based on the day's total minutes, not individual row's duration
+                // This logic will be applied after all rows are rendered, based on dailyChartMinutes
+            });
+
+            // After rendering all rows, apply 'expedienteMenor' class based on daily totals
+            Object.keys(dailyChartMinutes).forEach(dayDate => {
+                const totalMinutesForDay = dailyChartMinutes[dayDate];
+                const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
+                const intExpediente = horas_dia * 60;
+                
+                // Find all rows for this day and apply class if total minutes are less than target
+                if (totalMinutesForDay < intExpediente) {
+                    $(`#tbRelatorio tbody tr:has(td.data:contains('${dayDate}'))`).addClass('expedienteMenor');
                 }
             });
 
+
             // --- Chart Data Aggregation ---
-            const horas_dia = parseInt(localStorage.getItem('horas_dia'), 10);
-            const intExpediente = horas_dia * 60;
+            const horas_dia_config = parseInt(localStorage.getItem('horas_dia'), 10);
+            const intExpediente_config = horas_dia_config * 60; // Daily target in minutes
+
             let intExpedienteCheio = 0;
             let intExpedienteIncompleto = 0;
             const arrExpedienteHoras = {}; // Stores total hours per day (in hours)
-            let intHorasTotal = 0; // Total hours for the month (in hours)
+            let monthTotalMinutesWorked = 0; // Total minutes for the month
 
-            processedDailyRecords.forEach(dayData => {
-                const day = parseInt(dayData.data.substr(8, 2), 10);
-                const totalHours = dayData.totalMinutes / 60;
-                arrExpedienteHoras[day] = totalHours;
-                intHorasTotal += totalHours;
+            // Now process dailyChartMinutes for chart data
+            Object.keys(dailyChartMinutes).sort().forEach(dateKey => {
+                const totalMinutesForDay = dailyChartMinutes[dateKey];
+                const day = parseInt(dateKey.substr(8, 2), 10);
+                const totalHoursForDay = totalMinutesForDay / 60;
+                
+                arrExpedienteHoras[day] = totalHoursForDay; // For 'Horas/Dia' chart
+                monthTotalMinutesWorked += totalMinutesForDay; // For 'Meta Mensal' chart
 
-                if (dayData.totalMinutes < intExpediente && dayData.saida) { // Only count as incomplete if there's an exit
-                    intExpedienteIncompleto++;
-                } else if (dayData.totalMinutes >= intExpediente) {
-                    intExpedienteCheio++;
+                // For 'Assiduidade' chart: check if day met target (only if there was any work)
+                if (totalMinutesForDay > 0) { // Only count days where there was actual work recorded
+                    if (totalMinutesForDay >= intExpediente_config) {
+                        intExpedienteCheio++;
+                    } else {
+                        intExpedienteIncompleto++;
+                    }
                 }
             });
+
+            // Update intHorasTotal for 'Meta Mensal' chart
+            const intHorasTotal = monthTotalMinutesWorked / 60; // Convert total minutes to hours for display
+
 
             // Criação dos containers para gráficos Chart.js
             $('<div/>').addClass('widget-grafico').append($('<canvas/>').attr('id', 'chart-assiduidade').attr('width', 250).attr('height', 150)).appendTo($('#Ponto'));
@@ -566,7 +620,7 @@ var Ponto = {
             }
 
             const ctxMetaHoras = document.getElementById('chart-meta-horas').getContext('2d');
-            const intHorasMes = horas_dia * intDiasMeta;
+            const intHorasMes = horas_dia_config * intDiasMeta;
             new Chart(ctxMetaHoras, {
                 type: 'bar',
                 data: {
