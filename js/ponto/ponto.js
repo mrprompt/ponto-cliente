@@ -386,14 +386,10 @@ var Ponto = {
             const date = record.data;
             if (!dailyGroupedPunches[date]) {
                 dailyGroupedPunches[date] = {
-                    punches: [],
-                    obs: []
+                    punches: []
                 };
             }
             dailyGroupedPunches[date].punches.push(record);
-            if (record.observacao) {
-                dailyGroupedPunches[date].obs.push(record.observacao);
-            }
         });
 
         let finalProcessedRecords = []; // Changed to let for re-assignment after sorting
@@ -404,29 +400,28 @@ var Ponto = {
         Object.keys(dailyGroupedPunches).sort().forEach(date => {
             const dayData = dailyGroupedPunches[date];
             const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
-            const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
 
-            let currentEntryTime = null;
+            let currentEntryPunch = null; // Store the full punch object for entry
             let dayTotalMinutesWorked = 0; // Accumulator for this specific day's total minutes
 
             for (const punch of punches) {
                 if (punch.tipo === 'entrada') {
-                    if (currentEntryTime !== null) {
+                    if (currentEntryPunch !== null) {
                         // Previous entry was unmatched, create a row for it
                         finalProcessedRecords.push({
                             data: date,
-                            entrada: currentEntryTime,
+                            entrada: currentEntryPunch.time,
                             saida: '',
                             horas: '00:00',
                             totalMinutes: 0,
-                            obs: dayObservations
+                            obs: currentEntryPunch.observacao // Use its own observation
                         });
                     }
-                    currentEntryTime = punch.time;
+                    currentEntryPunch = punch; // Store the full punch object
                 } else if (punch.tipo === 'saida') {
-                    if (currentEntryTime !== null) {
+                    if (currentEntryPunch !== null) {
                         // Found a pair
-                        const [entryH, entryM] = currentEntryTime.split(':').map(Number);
+                        const [entryH, entryM] = currentEntryPunch.time.split(':').map(Number);
                         const [exitH, exitM] = punch.time.split(':').map(Number);
                         const durationMinutes = (exitH * 60 + exitM) - (entryH * 60 + entryM);
                         
@@ -436,15 +431,19 @@ var Ponto = {
                         const minutes = durationMinutes % 60;
                         const formattedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
+                        let combinedObs = [];
+                        if (currentEntryPunch.observacao) combinedObs.push(currentEntryPunch.observacao);
+                        if (punch.observacao) combinedObs.push(punch.observacao);
+
                         finalProcessedRecords.push({
                             data: date,
-                            entrada: currentEntryTime,
+                            entrada: currentEntryPunch.time,
                             saida: punch.time,
                             horas: formattedHours,
                             totalMinutes: durationMinutes,
-                            obs: dayObservations
+                            obs: combinedObs.join('; ') // Concatenate only for the pair
                         });
-                        currentEntryTime = null; // Reset for next pair
+                        currentEntryPunch = null; // Reset for next pair
                     } else {
                         // This is an unmatched exit. Add it to the report.
                         finalProcessedRecords.push({
@@ -453,21 +452,21 @@ var Ponto = {
                             saida: punch.time,
                             horas: '00:00', // No duration for unmatched exit
                             totalMinutes: 0,
-                            obs: dayObservations // Use day's observations for consistency
+                            obs: punch.observacao // Use its own observation
                         });
                     }
                 }
             }
 
             // After loop, if there's an unmatched entry
-            if (currentEntryTime !== null) {
+            if (currentEntryPunch !== null) {
                 finalProcessedRecords.push({
                     data: date,
-                    entrada: currentEntryTime,
+                    entrada: currentEntryPunch.time,
                     saida: '',
                     horas: '00:00',
                     totalMinutes: 0,
-                    obs: dayObservations
+                    obs: currentEntryPunch.observacao // Use its own observation
                 });
             }
             
