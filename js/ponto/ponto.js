@@ -1831,21 +1831,28 @@ var Ponto = {
         );
 
         const $typeRadios = $('<div/>').addClass('radioContainer');
+        const $entradaRadio = $('<input/>')
+            .attr('type', 'radio')
+            .attr('name', `type-${punchData.id}`)
+            .val('entrada');
+        if (punchData.tipo === 'entrada') {
+            $entradaRadio.attr('checked', 'checked');
+        }
         $typeRadios.append($('<label/>')
             .html('Entrada')
-            .prepend($('<input/>')
-                .attr('type', 'radio')
-                .attr('name', `type-${punchData.id}`)
-                .val('entrada')
-                .prop('checked', punchData.tipo === 'entrada'))
+            .prepend($entradaRadio)
         );
+
+        const $saidaRadio = $('<input/>')
+            .attr('type', 'radio')
+            .attr('name', `type-${punchData.id}`)
+            .val('saida');
+        if (punchData.tipo === 'saida') {
+            $saidaRadio.attr('checked', 'checked');
+        }
         $typeRadios.append($('<label/>')
             .html('Saída')
-            .prepend($('<input/>')
-                .attr('type', 'radio')
-                .attr('name', `type-${punchData.id}`)
-                .val('saida')
-                .prop('checked', punchData.tipo === 'saida'))
+            .prepend($saidaRadio)
         );
         $form.append($('<label/>').html('Tipo').append($typeRadios));
 
