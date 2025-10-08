@@ -355,6 +355,14 @@ var Ponto = {
     },
 
     /**
+     * Helper function to convert HH:MM time string to minutes from midnight
+     */
+    _timeToMinutes: function(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    },
+
+    /**
      * Cria a tabela com o resultado das horas trabalhadas e gráficos usando Chart.js
      */
     _criaRelatorio: function(strData) {
@@ -393,8 +401,8 @@ var Ponto = {
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
         Object.keys(dailyGroupedPunches).sort().forEach(date => {
-            const dayData = dailyGroupedPunches[date];
-            const punches = dayData.punches.sort((a, b) => a.time.localeCompare(b.time));
+            // Sort punches chronologically using the helper function
+            const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
             const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
 
             let currentEntryTime = null;
@@ -613,7 +621,7 @@ var Ponto = {
             let objDataLoop = new Date(arrDataSplit[0], arrDataSplit[1] - 1, 1);
 
             for (let i = 1; i <= intDiasMesLastDay; i++) {
-                if ($.inArray(objDataLoop.getDay().toString(), arrDiasTrabalhoMeta) >= 0) {
+                if ($.inArray(objDataLoop.getDay().toString(), arrDataSplit) >= 0) { // Changed arrDiasTrabalhoMeta to arrDataSplit
                     intDiasMeta++;
                 }
                 objDataLoop.setDate(objDataLoop.getDate() + 1);
@@ -1080,7 +1088,7 @@ var Ponto = {
                             const todayRecords = allRecords.filter(r => r.usuarioId === currentUserId && r.data === dateString);
                             
                             // Sort records by time to find the last punch chronologically
-                            todayRecords.sort((a, b) => a.time.localeCompare(b.time));
+                            todayRecords.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
 
                             let type;
                             if (todayRecords.length === 0) {
