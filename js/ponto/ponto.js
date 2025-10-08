@@ -7,6 +7,7 @@
  * Redistributions of files must retain the above copyright notice.
  *
  * @author     Thiago Paes - mrprompt@gmail.com
+
  * @package    Ponto
  * @subpackage Ponto
  * @filesource Ponto.js
@@ -132,6 +133,17 @@ var Ponto = {
                                 .button()
                                 .click(function() {
                                     Ponto.preferencias();
+                                })
+                            )
+                        )
+                        // Adiciona o novo menu 'Ferramentas'
+                        .append($('<li/>')
+                            .append($('<a/>')
+                                .html('Ferramentas')
+                                .attr('href', 'javascript:;')
+                                .button()
+                                .click(function() {
+                                    Ponto.showToolsDialog();
                                 })
                             )
                         )
@@ -1515,5 +1527,255 @@ var Ponto = {
                 $(".widget-usuarios").remove();
             }
         });
+    },
+
+    /**
+     * Abre o diálogo de Ferramentas (Importar/Exportar)
+     */
+    showToolsDialog: function() {
+        console.log('showToolsDialog called'); // Log para depuração
+        const $toolsDialog = $('<div/>')
+            .attr('id', 'tools-dialog')
+            .appendTo($('#Ponto'));
+
+        // Adiciona um botão para Exportar
+        $('<button/>')
+            .text('Exportar Dados')
+            .button()
+            .click(function() {
+                console.log('Exportar button clicked');
+                Ponto.exportData();
+                $toolsDialog.dialog('close');
+            })
+            .appendTo($toolsDialog);
+
+        // Adiciona um botão para Importar
+        $('<button/>')
+            .text('Importar Dados')
+            .button()
+            .click(function() {
+                console.log('Importar button clicked');
+                Ponto._showImportDataModal();
+                $toolsDialog.dialog('close'); // Fecha o modal de ferramentas ao abrir o de importação
+            })
+            .appendTo($toolsDialog);
+
+        $toolsDialog.dialog({
+            title: 'Ferramentas',
+            width: 300,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Fechar": function() {
+                    console.log('Fechar button clicked');
+                    $(this).dialog('close');
+                }
+            },
+            close: function() {
+                console.log('Tools dialog closed');
+                $("#tools-dialog").remove();
+            }
+        });
+    },
+
+    /**
+     * Exibe um modal com o JSON para exportação e um botão de copiar.
+     */
+    _showExportDataModal: function(jsonData) {
+        const $exportModal = $('<div/>')
+            .attr('id', 'export-data-modal')
+            .appendTo($('#Ponto'));
+
+        $exportModal.append(
+            $('<p/>').html('Copie o JSON abaixo para um arquivo de texto (.json) para fazer backup dos seus dados.')
+        );
+
+        const $textarea = $('<textarea/>')
+            .attr('id', 'exportJsonData')
+            .attr('readonly', 'readonly')
+            .css({
+                width: '100%',
+                height: '200px',
+                resize: 'vertical',
+                'box-sizing': 'border-box',
+                'font-family': 'monospace'
+            })
+            .val(jsonData)
+            .appendTo($exportModal);
+
+        $exportModal.dialog({
+            title: 'Exportar Dados',
+            width: 500,
+            modal: true,
+            resizable: true,
+            buttons: [{
+                text: 'Copiar para Área de Transferência',
+                icons: {
+                    primary: 'ui-icon-copy'
+                },
+                click: function() {
+                    const textarea = document.getElementById('exportJsonData');
+                    textarea.select();
+                    textarea.setSelectionRange(0, 99999); // Para dispositivos móveis
+
+                    try {
+                        // Tenta usar a API moderna de Clipboard
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(textarea.value).then(function() {
+                                Ponto._showMsg('Dados copiados para a área de transferência!');
+                            }).catch(function(err) {
+                                console.error('Erro ao copiar para a área de transferência (API):', err);
+                                Ponto._showErro('Falha ao copiar. Por favor, copie manualmente.');
+                            });
+                        } else {
+                            // Fallback para execCommand (deprecated, mas ainda funciona em alguns navegadores)
+                            document.execCommand('copy');
+                            Ponto._showMsg('Dados copiados para a área de transferência!');
+                        }
+                    } catch (err) {
+                        console.error('Erro ao copiar para a área de transferência:', err);
+                        Ponto._showErro('Falha ao copiar. Por favor, copie manualmente.');
+                    }
+                }
+            }, {
+                text: 'Fechar',
+                click: function() {
+                    $(this).dialog('close');
+                }
+            }],
+            close: function() {
+                $("#export-data-modal").remove();
+            }
+        });
+    },
+
+    /**
+     * Exporta todos os dados do LocalStorage para um arquivo JSON.
+     */
+    exportData: function() {
+        console.log('Ponto.exportData called'); // Log para depuração
+        // Coleta todos os dados relevantes do LocalStorage
+        const dataToExport = {};
+        for (const key in LS_KEYS) {
+            const lsKey = LS_KEYS[key];
+            const value = localStorage.getItem(lsKey);
+            try {
+                // Tenta parsear para JSON se for um objeto/array, caso contrário, mantém como string
+                dataToExport[lsKey] = value ? JSON.parse(value) : null;
+            } catch (e) {
+                // Se não for JSON válido, armazena como string (ex: nextId)
+                dataToExport[lsKey] = value;
+            }
+        }
+
+        const jsonString = JSON.stringify(dataToExport, null, 2); // Formata com indentação para legibilidade
+        console.log('JSON string to export:', jsonString); // Log do conteúdo JSON
+
+        if (!jsonString || jsonString === '{}') {
+            Ponto._showErro('Não há dados para exportar.');
+            return;
+        }
+
+        // Chama a nova função para exibir o modal com o JSON
+        Ponto._showExportDataModal(jsonString);
+        console.log('Export data process finished, modal shown.'); // Log para depuração
+    },
+
+    /**
+     * Exibe um modal para importação de dados.
+     */
+    _showImportDataModal: function() {
+        const $importModal = $('<div/>')
+            .attr('id', 'import-data-modal')
+            .appendTo($('#Ponto'));
+
+        $importModal.append(
+            $('<p/>').html('Selecione um arquivo JSON (.json) contendo os dados de backup para importar. <br/> <b>Atenção:</b> Isso substituirá todos os dados existentes no sistema.')
+        );
+
+        const $fileInput = $('<input type="file" accept=".json" id="importFileInput">')
+            .appendTo($importModal);
+
+        $importModal.dialog({
+            title: 'Importar Dados',
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: [{
+                text: 'Importar',
+                icons: {
+                    primary: 'ui-icon-arrowreturnthick-1-s'
+                },
+                click: function() {
+                    const file = $('#importFileInput')[0].files[0];
+                    if (file) {
+                        Ponto.handleImportFile(file);
+                        $(this).dialog('close');
+                    } else {
+                        Ponto._showErro('Por favor, selecione um arquivo para importar.');
+                    }
+                }
+            }, {
+                text: 'Fechar',
+                click: function() {
+                    $(this).dialog('close');
+                }
+            }],
+            close: function() {
+                $("#import-data-modal").remove();
+            }
+        });
+    },
+
+    /**
+     * Lida com o arquivo selecionado para importação.
+     */
+    handleImportFile: function(file) {
+        console.log('Ponto.handleImportFile called with file:', file); // Log para depuração
+        if (!file) {
+            Ponto._showErro('Nenhum arquivo selecionado.');
+            console.log('No file selected.'); // Log para depuração
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+
+                // Validação básica da estrutura do JSON importado
+                const requiredKeys = Object.values(LS_KEYS);
+                const missingKeys = requiredKeys.filter(key => importedData[key] === undefined);
+
+                if (missingKeys.length > 0) {
+                    Ponto._showErro('O arquivo JSON importado não possui a estrutura esperada. Chaves ausentes: ' + missingKeys.join(', '));
+                    console.log('Imported JSON missing keys:', missingKeys); // Log para depuração
+                    return;
+                }
+
+                // Substitui os dados no LocalStorage
+                for (const key in LS_KEYS) {
+                    const lsKey = LS_KEYS[key];
+                    const valueToStore = importedData[lsKey];
+
+                    // Para NEXT_USER_ID e NEXT_RECORD_ID, armazene como string simples
+                    if (lsKey === LS_KEYS.NEXT_USER_ID || lsKey === LS_KEYS.NEXT_RECORD_ID) {
+                        localStorage.setItem(lsKey, valueToStore);
+                    } else {
+                        // Para outros dados (objetos/arrays), stringifique-os
+                        localStorage.setItem(lsKey, JSON.stringify(valueToStore));
+                    }
+                }
+
+                Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
+                console.log('Import data process finished, message shown.'); // Log para depuração
+                // Reinicia a aplicação para carregar os novos dados
+                Ponto.init();
+            } catch (error) {
+                Ponto._showErro('Erro ao ler ou parsear o arquivo JSON: ' + error.message);
+                console.error('Error reading or parsing JSON file:', error); // Log para depuração
+            }
+        };
+        reader.readAsText(file);
     }
 };
