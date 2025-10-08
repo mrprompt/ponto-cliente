@@ -214,7 +214,7 @@ var Ponto = {
                 .append($('<input/>')
                     .attr('type', 'text')
                     .attr('name', 'usuario')
-                    .attr('id', 'usuario')
+                    .attr('id', 'id')
                     .addClass('text ui-widget-content ui-corner-all required')))
             .append($('<label/>')
                 .attr('for', 'email')
@@ -400,7 +400,7 @@ var Ponto = {
         const dailyChartMinutes = {}; // Stores total minutes worked per day for charts
 
         // Iterate through each day's punches to create logical rows and aggregate chart data
-        Object.keys(dailyGroupedPunches).sort().forEach(date => {
+        Object.keys(dailyGroupedPunches).sort().reverse().forEach(date => { // Invertendo a ordem dos dias aqui
             const dayData = dailyGroupedPunches[date];
             const punches = dayData.punches.sort((a, b) => Ponto._timeToMinutes(a.time) - Ponto._timeToMinutes(b.time));
             const dayObservations = dayData.obs.join('; '); // Combine all observations for the day
