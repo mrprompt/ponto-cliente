@@ -7,6 +7,7 @@
  * Redistributions of files must retain the above copyright notice.
  *
  * @author     Thiago Paes - mrprompt@gmail.com
+
  * @package    Ponto
  * @subpackage Ponto
  * @filesource Ponto.js
@@ -1532,6 +1533,7 @@ var Ponto = {
      * Abre o diálogo de Ferramentas (Importar/Exportar)
      */
     showToolsDialog: function() {
+        console.log('showToolsDialog called'); // Log para depuração
         $('<div/>')
             .attr('id', 'tools-dialog')
             .html('Selecione uma opção:')
@@ -1543,18 +1545,22 @@ var Ponto = {
                 resizable: false,
                 buttons: {
                     "Exportar": function() {
+                        console.log('Exportar button clicked'); // Log para depuração
                         Ponto.exportData();
                         $(this).dialog('close');
                     },
                     "Importar": function() {
+                        console.log('Importar button clicked'); // Log para depuração
                         Ponto.importData();
                         $(this).dialog('close');
                     },
                     "Fechar": function() {
+                        console.log('Fechar button clicked'); // Log para depuração
                         $(this).dialog('close');
                     }
                 },
                 close: function() {
+                    console.log('Tools dialog closed'); // Log para depuração
                     $("#tools-dialog").remove();
                 }
             });
@@ -1564,6 +1570,7 @@ var Ponto = {
      * Exporta todos os dados do LocalStorage para um arquivo JSON.
      */
     exportData: function() {
+        console.log('Ponto.exportData called'); // Log para depuração
         // Coleta todos os dados relevantes do LocalStorage
         const dataToExport = {};
         for (const key in LS_KEYS) {
@@ -1586,25 +1593,29 @@ var Ponto = {
         a.href = url;
         a.download = 'ponto_eletronico_data.json';
         document.body.appendChild(a);
-        a.click();
+        a.click(); // Isso deve disparar o download
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
         Ponto._showMsg('Dados exportados com sucesso!');
+        console.log('Export data process finished, message shown.'); // Log para depuração
     },
 
     /**
      * Importa dados de um arquivo JSON e substitui o LocalStorage.
      */
     importData: function() {
+        console.log('Ponto.importData called'); // Log para depuração
         const fileInput = $('<input type="file" accept=".json" style="display: none;">');
         fileInput.appendTo('body');
 
         // Usar .bind() em vez de .on() para compatibilidade com jQuery 1.5.1
         fileInput.bind('change', function(event) {
+            console.log('File input change event fired.'); // Log para depuração
             const file = event.target.files[0];
             if (!file) {
                 Ponto._showErro('Nenhum arquivo selecionado.');
+                console.log('No file selected.'); // Log para depuração
                 return;
             }
 
@@ -1619,6 +1630,7 @@ var Ponto = {
 
                     if (missingKeys.length > 0) {
                         Ponto._showErro('O arquivo JSON importado não possui a estrutura esperada. Chaves ausentes: ' + missingKeys.join(', '));
+                        console.log('Imported JSON missing keys:', missingKeys); // Log para depuração
                         return;
                     }
 
@@ -1630,10 +1642,12 @@ var Ponto = {
                     }
 
                     Ponto._showMsg('Dados importados com sucesso! A aplicação será reiniciada.');
+                    console.log('Import data process finished, message shown.'); // Log para depuração
                     // Reinicia a aplicação para carregar os novos dados
                     Ponto.init();
                 } catch (error) {
                     Ponto._showErro('Erro ao ler ou parsear o arquivo JSON: ' + error.message);
+                    console.error('Error reading or parsing JSON file:', error); // Log para depuração
                 } finally {
                     fileInput.remove(); // Remove o input de arquivo após o uso
                 }
@@ -1642,5 +1656,6 @@ var Ponto = {
         });
 
         fileInput.click(); // Abre o seletor de arquivos
+        console.log('File input click triggered.'); // Log para depuração
     }
 };
