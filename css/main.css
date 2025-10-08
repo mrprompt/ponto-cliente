@@ -337,6 +337,53 @@ nav .ui-button {
 }
 */
 
+/* --- Edit Punch Modal */
+#edit-punch-dialog .edit-punch-form {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+#edit-punch-dialog .edit-punch-form:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+#edit-punch-dialog .edit-punch-form h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #505050;
+}
+#edit-punch-dialog .edit-punch-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 110%;
+}
+#edit-punch-dialog .edit-punch-form input[type="text"],
+#edit-punch-dialog .edit-punch-form textarea {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+#edit-punch-dialog .edit-punch-form .radioContainer {
+    display: inline-block;
+    margin-left: 10px;
+}
+#edit-punch-dialog .edit-punch-form .radioContainer label {
+    display: inline-block;
+    margin-right: 15px;
+    font-size: 100%;
+}
+#edit-punch-dialog .delete-punch-button {
+    float: right;
+    margin-top: 10px;
+    background-color: #cd0a0a; /* Red background for delete button */
+    color: white;
+    border-color: #cd0a0a;
+}
+#edit-punch-dialog .delete-punch-button:hover {
+    background-color: #e17009; /* Darker red on hover */
+    border-color: #e17009;
+}
 /* ---- responsive */
 @media (max-width: 480px) {
     #container {

@@ -436,7 +436,9 @@ var Ponto = {
                         finalProcessedRecords.push({
                             data: date,
                             entrada: currentEntryPunch.time,
+                            entradaId: currentEntryPunch.id, // Add entry ID
                             saida: '',
+                            saidaId: null,
                             horas: '00:00',
                             totalMinutes: 0,
                             obs: currentEntryPunch.observacao // Use its own observation
@@ -463,7 +465,9 @@ var Ponto = {
                         finalProcessedRecords.push({
                             data: date,
                             entrada: currentEntryPunch.time,
+                            entradaId: currentEntryPunch.id, // Add entry ID
                             saida: punch.time,
+                            saidaId: punch.id, // Add exit ID
                             horas: formattedHours,
                             totalMinutes: durationMinutes,
                             obs: combinedObs.join('; '), // Concatenate only for the pair
@@ -476,7 +480,9 @@ var Ponto = {
                         finalProcessedRecords.push({
                             data: date,
                             entrada: '', // No entry for this exit
+                            entradaId: null,
                             saida: punch.time,
+                            saidaId: punch.id, // Add exit ID
                             horas: '00:00', // No duration for unmatched exit
                             totalMinutes: 0,
                             obs: punch.observacao, // Use its own observation
@@ -491,7 +497,9 @@ var Ponto = {
                 finalProcessedRecords.push({
                     data: date,
                     entrada: currentEntryPunch.time,
+                    entradaId: currentEntryPunch.id, // Add entry ID
                     saida: '',
+                    saidaId: null,
                     horas: '00:00',
                     totalMinutes: 0,
                     obs: currentEntryPunch.observacao, // Use its own observation
@@ -556,6 +564,15 @@ var Ponto = {
 
             $.each(finalProcessedRecords, function() {
                 const $linha = $('<tr/>')
+                    .data('entry-id', this.entradaId)
+                    .data('exit-id', this.saidaId)
+                    .data('date', this.data)
+                    .dblclick(function() {
+                        const entryId = $(this).data('entry-id');
+                        const exitId = $(this).data('exit-id');
+                        const date = $(this).data('date');
+                        Ponto._openEditPunchModal(entryId, exitId, date);
+                    })
                     .appendTo($('#tbRelatorio tbody'));
 
                 $linha.append($('<td/>')
@@ -2045,5 +2062,228 @@ var Ponto = {
             }
         };
         reader.readAsText(file);
+    },
+
+    /**
+     * Helper function to generate a form for a single punch record.
+     */
+    _formEditPunch: function(punchData) {
+        const formId = `edit-punch-form-${punchData.id}`;
+        const $form = $('<form/>').attr('id', formId).addClass('edit-punch-form');
+
+        $form.append($('<h4/>').html(`Editar Registro (${punchData.tipo === 'entrada' ? 'Entrada' : 'Saída'})`));
+
+        $form.append($('<label/>')
+            .attr('for', `edit-data-${punchData.id}`)
+            .html('Data')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'data')
+                .attr('id', `edit-data-${punchData.id}`)
+                .val(punchData.data)
+                .addClass('text ui-widget-content ui-corner-all datepicker-input')
+                .attr('readonly', true) // Data is not editable from this modal
+            )
+        );
+
+        $form.append($('<label/>')
+            .attr('for', `edit-time-${punchData.id}`)
+            .html('Hora')
+            .append($('<input/>')
+                .attr('type', 'text')
+                .attr('name', 'time')
+                .attr('id', `edit-time-${punchData.id}`)
+                .val(punchData.time)
+                .mask('99:99')
+                .addClass('text ui-widget-content ui-corner-all required'))
+        );
+
+        const $typeRadios = $('<div/>').addClass('radioContainer');
+        const $entradaRadio = $('<input/>')
+            .attr('type', 'radio')
+            .attr('name', `type-${punchData.id}`)
+            .val('entrada');
+        if (punchData.tipo === 'entrada') {
+            $entradaRadio.attr('checked', 'checked');
+        }
+        $typeRadios.append($('<label/>')
+            .html('Entrada')
+            .prepend($entradaRadio)
+        );
+
+        const $saidaRadio = $('<input/>')
+            .attr('type', 'radio')
+            .attr('name', `type-${punchData.id}`)
+            .val('saida');
+        if (punchData.tipo === 'saida') {
+            $saidaRadio.attr('checked', 'checked');
+        }
+        $typeRadios.append($('<label/>')
+            .html('Saída')
+            .prepend($saidaRadio)
+        );
+        $form.append($('<label/>').html('Tipo').append($typeRadios));
+
+        $form.append($('<label/>')
+            .attr('for', `edit-observacao-${punchData.id}`)
+            .html('Observação')
+            .append($('<textarea/>')
+                .attr('name', 'observacao')
+                .attr('id', `edit-observacao-${punchData.id}`)
+                .val(punchData.observacao)
+                .addClass('text ui-widget-content ui-corner-all'))
+        );
+
+        $form.append($('<input/>')
+            .attr('type', 'hidden')
+            .attr('name', 'id')
+            .val(punchData.id)
+        );
+
+        return $form;
+    },
+
+    /**
+     * Opens a modal to edit one or two punch records (entry and/or exit) for a given date.
+     */
+    _openEditPunchModal: function(entryId, exitId, date) {
+        const $editDialog = $('<div/>').attr('id', 'edit-punch-dialog').appendTo($('#Ponto'));
+        let allRecords = getFromLS(LS_KEYS.RECORDS);
+        let punchesToEdit = [];
+
+        if (entryId) {
+            const entryPunch = allRecords.find(r => r.id === entryId);
+            if (entryPunch) punchesToEdit.push(entryPunch);
+        }
+        if (exitId) {
+            const exitPunch = allRecords.find(r => r.id === exitId);
+            if (exitPunch) punchesToEdit.push(exitPunch);
+        }
+
+        if (punchesToEdit.length === 0) {
+            Ponto._showErro('Nenhum registro encontrado para edição.');
+            $editDialog.remove();
+            return;
+        }
+
+        punchesToEdit.forEach(punch => {
+            $editDialog.append(Ponto._formEditPunch(punch));
+            // Add a delete button for each punch
+            $('<button/>')
+                .text('Excluir este registro')
+                .addClass('delete-punch-button ui-button ui-widget ui-state-default ui-corner-all')
+                .data('punch-id', punch.id)
+                .click(function() {
+                    const punchIdToDelete = $(this).data('punch-id');
+                    Ponto._confirmDeletePunch(punchIdToDelete, $editDialog);
+                })
+                .appendTo($editDialog);
+        });
+
+        $editDialog.dialog({
+            title: `Editar Registros para ${date}`,
+            width: 450,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Salvar": function() {
+                    let isValid = true;
+                    let updatedPunches = [];
+
+                    $editDialog.find('.edit-punch-form').each(function() {
+                        const form = $(this);
+                        const punchId = form.find('input[name="id"]').val();
+                        const time = form.find('input[name="time"]').val();
+                        const type = form.find(`input[name="type-${punchId}"]:checked`).val();
+                        const observacao = form.find('textarea[name="observacao"]').val();
+                        const data = form.find('input[name="data"]').val(); // Get data from form
+
+                        if (!time || !type) {
+                            isValid = false;
+                            Ponto._showErro('Preencha todos os campos obrigatórios (Hora e Tipo).');
+                            return false;
+                        }
+                        if (!/^\d{2}:\d{2}$/.test(time)) {
+                            isValid = false;
+                            Ponto._showErro('Formato de hora inválido (HH:MM).');
+                            return false;
+                        }
+
+                        updatedPunches.push({
+                            id: punchId,
+                            data: data, // Include data in updated punch
+                            time: time,
+                            tipo: type,
+                            observacao: observacao
+                        });
+                    });
+
+                    if (!isValid) return;
+
+                    // Update records in localStorage
+                    let currentRecords = getFromLS(LS_KEYS.RECORDS);
+                    updatedPunches.forEach(updatedPunch => {
+                        const index = currentRecords.findIndex(r => r.id === updatedPunch.id);
+                        if (index !== -1) {
+                            currentRecords[index] = { ...currentRecords[index], ...updatedPunch };
+                        }
+                    });
+                    saveToLS(LS_KEYS.RECORDS, currentRecords);
+
+                    $(this).dialog('close');
+                    Ponto.relatorio();
+                },
+                "Cancelar": function() {
+                    $(this).dialog('close');
+                }
+            },
+            close: function() {
+                $("#edit-punch-dialog").remove();
+            }
+        });
+
+        // Initialize datepicker for each date input in the dialog
+        $editDialog.find('.datepicker-input').datepicker({
+            dateFormat: 'yy-mm-dd',
+            showOtherMonths: false,
+            selectOtherMonths: false,
+            hideIfNoPrevNext: true,
+            maxDate: '+0d'
+        });
+    },
+
+    /**
+     * Confirms and deletes a single punch record.
+     */
+    _confirmDeletePunch: function(punchId, $parentDialog) {
+        $('<div/>')
+            .attr('id', 'confirm-delete-punch-dialog')
+            .html('Tem certeza que deseja excluir este registro de ponto? Esta ação é irreversível.')
+            .appendTo($('#Ponto'))
+            .dialog({
+                title: 'Confirmar Exclusão',
+                width: 350,
+                modal: true,
+                resizable: false,
+                buttons: {
+                    "Excluir": function() {
+                        let allRecords = getFromLS(LS_KEYS.RECORDS);
+                        allRecords = allRecords.filter(r => r.id !== punchId);
+                        saveToLS(LS_KEYS.RECORDS, allRecords);
+
+                        $(this).dialog('close');
+                        $('#confirm-delete-punch-dialog').remove();
+                        $parentDialog.dialog('close'); // Close the edit dialog as well
+                        Ponto.relatorio();
+                    },
+                    "Cancelar": function() {
+                        $(this).dialog('close');
+                        $('#confirm-delete-punch-dialog').remove();
+                    }
+                },
+                close: function() {
+                    $('#confirm-delete-punch-dialog').remove();
+                }
+            });
     }
 };
